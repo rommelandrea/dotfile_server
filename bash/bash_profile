@@ -1,0 +1,70 @@
+#=========================================================================
+#
+# PERSONNAL $HOME/.bash_profile for bash-4
+#
+# This file is read by non-interactive as well as interactive shells, so
+# it shouldn't have any output to a tty in it (ie no 'echo' )
+# Note that you should NOT define your prompt (PS1) here as the prompt
+# is an interactive shell feature only.
+#
+#=========================================================================
+
+#=========================================================================
+#
+# SHELL SETTINGS AND VARIABLES
+#
+#=========================================================================
+
+#---------------
+# Some settings
+#---------------
+
+umask 027
+ulimit -S -c 0
+
+# Add personnal bindir to default path:
+
+export PATH="$HOME/bin:$PATH"
+
+
+#-------------------------------------------------
+# Sometimes the following variables are not set :
+#-------------------------------------------------
+
+# export USER=$(id -un)
+# export LOGNAME=${USER}
+# export HOST=$(uname -n)
+
+export EDITOR=kate
+export INPUTRC=$HOME/.inputrc
+
+export HISTSIZE=-1
+export HISTFILESIZE=-1
+
+export GTK_IM_MODULE="xim"
+export QT_IM_MODULE="xim"
+
+
+
+#--------------------------------------------------------------
+# A login shell doesn't source the ~/.bashrc file by default,
+# so lets source it if it exists (and we're an interactive shell)
+# so that we have all our aliases when we do a 'rlogin':
+#--------------------------------------------------------------
+
+case "$-" in
+
+    *i*)    # interactive shell
+	[ -f ~/.bashrc ] && . ~/.bashrc ;;
+
+    *)      # non-interactive shell
+                  ;;
+esac
+
+
+
+
+# Local Variables:
+# mode:shell-script
+# sh-shell:bash
+# End:

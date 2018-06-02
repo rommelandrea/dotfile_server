@@ -1,0 +1,437 @@
+#===============================================================
+#
+# PERSONNAL BASH COMPLETION for bash-4 (or later)
+#
+# This file is read (normally) by interactive shells only.
+#
+# kate: syntax bash
+#===============================================================
+
+
+_killps ()
+{
+    local cur prev
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    if [ $COMP_CWORD -eq 1 ] && [[ "$cur" == -* ]]; then
+        COMPREPLY=( $( compgen -A signal SIG${cur#-} ))
+        for (( i=0; i < ${#COMPREPLY[@]}; i++ )); do
+            COMPREPLY[i]=-${COMPREPLY[i]#SIG}
+        done
+    else
+        # get a list of processes (the first sed evaluation
+        # takes care of swapped out processes, the second
+        # takes care of getting the basename of the process)
+        COMPREPLY=( $( ps -u $USER -o comm  | \
+        sed -e '1,1d' -e 's#[]\[]##g' -e 's#^.*/##'| \
+        awk '{if ($0 ~ /^'$cur'/) print $0}' ))
+    fi
+
+    return 0
+}
+
+complete -F _killps killps killall pp
+
+
+shopt -s extglob    # necessary
+
+complete -u su
+complete -v export local readonly unset
+complete -A helptopic help  # currently same as builtins
+complete -A shopt shopt
+complete -A enabled builtin
+complete -A stopped -P '%' bg
+complete -j -P '%' fg jobs disown
+
+complete -d pushd mkdir
+complete -d cd
+
+complete -e printenv
+
+complete -c type
+complete -a unalias alias
+
+# Put this line in .inputrc to ignore case for completion
+# set completion-ignore-case on
+
+# Compression
+complete -f -o default -X '*.zip'       zip
+complete -f -o default -X '!*.zip'      unzip
+complete -f -o default -X '*.+(z|gz)'   gzip
+complete -f -o default -X '!*.+(z|gz)'  gunzip
+complete -f -o default -X '*.bz2'       bzip2
+complete -f -o default -X '!*.bz2'      bunzip2
+complete -f -o default -X '*.xz'        xz
+complete -f -o default -X '!*.xz'       unxz
+complete -f -o default -X '!*.+(zip|z|gz|bz2|xz|tar)' extract
+
+
+# Postscript,pdf,dvi.....
+complete -f -o default -X '!*.ps' ps2pdf ps2ascii
+complete -f -o default -X '!*.dvi' dvips dvipdf xdvi dviselect dvitype
+complete -f -o default -X '!*.@(@(?(e)ps|pdf)?(.z|.gz|.bz2|.xz))' acroread okular
+complete -f -o default -X '!*.texi*' makeinfo texi2dvi texi2html texi2pdf
+complete -f -o default -X '!*.tex' tex latex slitex
+complete -f -o default -X '!*.lyx' lyx
+complete -f -o default -X '!*.+(htm|html)' lynx
+complete -f -o default -X '!*.+(doc?(x)|ppt?(x)|xls?(x)|sxi|csv|od?(f|p|g|s|t|m)|ot?(p|s|t|h)|xml|rtf)' soffice
+
+# Multimedia
+complete -f -o default -X '!*.+(gif|jp?(e)g|bmp|xpm|png|tga)' gimp gqview
+complete -f -o default -X '!*.+(mp3|m3u)' mpg123 mpg321 mp32ogg
+complete -f -o default -X '!*.ogg' ogg123 ogg2mp3
+complete -f -o default -X '!*.@(mp[23]|ogg|wav|pls|m3u|xm|mod|s[3t]m|it|mtm|ult|flac)' xmms
+complete -f -o default -X '!*.@(mp?(e)g|wma|avi|asf|vob|bin|dat|vcd|ps|pes|fli|viv|rm|ram|yuv|mov|qt|wmv|mp3|ogg|ogm|mp4|wav|asx)' vlc
+
+# Misc
+complete -f -o default -X '!*.pl'  perl perl5
+complete -f -o default -X '!*.py'  python python2
+
+
+# This is a 'universal' completion function - it works when commands have
+# a so-called 'long options' mode , ie: 'ls --all' instead of 'ls -a'
+
+_get_longopts()
+{
+    #$1 --help | sed  -e '/--/!d' -e 's/.*--\([^[:space:].,]*\).*/--\1/'| \
+#grep ^"$2" |sort -u ;
+    $1 --help | grep -o -e "--[^[:space:].,]*" | grep -e "$2" |sort -u
+}
+
+_longopts ()
+{
+    local cur
+    cur=${COMP_WORDS[COMP_CWORD]}
+    case "${cur:-*}" in
+    -*) ;;
+    *)  return ;;
+    esac
+
+    case "$1" in
+    \~*)    eval cmd="$1" ;;
+    *)      cmd="$1" ;;
+    esac
+    COMPREPLY=( $(_get_longopts ${1} ${cur} ) )
+}
+
+complete  -o default -F _longopts configure ngspice bash
+complete  -o default -F _longopts ldd wget id info ls recode
+complete  -o default -F _longopts rpm a2ps cdparanoia
+
+
+
+_make()
+{
+    local mdef makef makef_dir="." makef_inc gcmd cur prev i;
+    COMPREPLY=();
+    cur=${COMP_WORDS[COMP_CWORD]};
+    prev=${COMP_WORDS[COMP_CWORD-1]};
+    case "$prev" in
+    -*f)
+        COMPREPLY=($(compgen -f $cur ));
+        return 0
+    ;;
+    esac;
+    case "$cur" in
+    -*)
+        COMPREPLY=($(_get_longopts $1 $cur ));
+        return 0
+    ;;
+    esac;
+
+    # make reads `GNUmakefile', then `makefile', then `Makefile'
+    if [ -f ${makef_dir}/GNUmakefile ]; then
+        makef=${makef_dir}/GNUmakefile
+    elif [ -f ${makef_dir}/makefile ]; then
+        makef=${makef_dir}/makefile
+    elif [ -f ${makef_dir}/Makefile ]; then
+        makef=${makef_dir}/Makefile
+    else
+        makef=${makef_dir}/*.mk         # local convention
+    fi
+
+
+    # before we scan for targets, see if a Makefile name was
+    # specified with -f
+    for (( i=0; i < ${#COMP_WORDS[@]}; i++ )); do
+    if [[ ${COMP_WORDS[i]} == -f ]]; then
+        # eval for tilde expansion
+        eval makef=${COMP_WORDS[i+1]}
+        break
+    fi
+    done
+    [ ! -f $makef ] && return 0
+
+    # deal with included Makefiles
+    makef_inc=$( grep -E '^-?include' $makef | sed -e "s,^.* ,"$makef_dir"/," )
+    for file in $makef_inc; do
+    [ -f $file ] && makef="$makef $file"
+    done
+
+
+    # if we have a partial word to complete, restrict completions to
+    # matches of that word
+    if [ -n "$cur" ]; then gcmd='grep "^$cur"' ; else gcmd=cat ; fi
+
+    COMPREPLY=( $( awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:([^=]|$)/ \
+                {split($1,A,/ /);for(i in A)print A[i]}' \
+                $makef 2>&- | eval $gcmd  ))
+
+}
+
+complete -F _make -X '+($*|*.[cho])' make gmake pmake
+
+
+_known_hosts()
+{
+    local cur kh
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    cur=${cur#*@}
+    # Escape slashes and dots in paths for awk
+    cur=${cur//\//\\\/}
+    cur=${cur//\./\\\.}
+    kh=()
+
+    [ -r /etc/known_hosts ]    && kh[0]=/etc/known_hosts
+    [ -r /etc/known_hosts2 ]   && kh[1]=/etc/known_hosts2
+    [ -r ~/.ssh/known_hosts ]  && kh[2]=~/.ssh/known_hosts
+    [ -r ~/.ssh/known_hosts2 ] && kh[3]=~/.ssh/known_hosts2
+
+    # If we have known_hosts files to use
+    if [ ${#kh[@]} -gt 0 ]; then
+        if [[ $cur == [0-9]*.* ]]; then
+        # Digits followed by a dot - just search for that
+        cur="^$cur.*"
+        elif [[ $cur == [0-9]* ]]; then
+        # Digits followed by no dot - search for digits followed
+        # by a dot
+        cur="^$cur.*\."
+        elif [ -z $cur ]; then
+        # A blank - search for a dot or an alpha character
+        cur="[a-z.]"
+        else
+        cur="^$cur"
+        fi
+        # FS needs to look for a comma separated list
+        COMPREPLY=( $( awk 'BEGIN {FS=","}
+                {for (i=1; i<=2; ++i) { \
+                    gsub(" .*$", "", $i); \
+                    if ($i ~ /'$cur'/) {print $i} \
+                }}' ${kh[@]} ) )
+    else
+        # Just do normal hostname completion
+        COMPREPLY=( $( compgen -A hostname $cur ) )
+    fi
+
+    return 0
+}
+complete -F _known_hosts traceroute ping fping telnet host nslookup
+
+# ssh(1) completion. Should be able to improve this with user@host notation,
+# but the '@' seems to trigger some kind of bug in bash's completion.
+
+_ssh()
+{
+    local cur prev COMPREPLY_SAVE=()
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    case "$prev" in
+    -*c)
+        COMPREPLY=( $( compgen -W 'blowfish 3des 3des-cbc blowfish-cbc \
+            arcfour cast128-cbc' $cur ) )
+        ;;
+    -*l)
+        COMPREPLY=( $( compgen -u $cur ) )
+        ;;
+    *)
+        COMPREPLY_SAVE=( $( compgen -c $cur ) )
+        _known_hosts
+        COMPREPLY=( ${COMPREPLY[@]} ${COMPREPLY_SAVE[@]} )
+    esac
+
+    return 0
+}
+complete -F _ssh ssh slogin sftp
+
+
+_scp()
+{
+    local cur COMPREPLY_SAVE=()
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    COMPREPLY_SAVE=( $( compgen -f $cur ) )
+    _known_hosts
+    COMPREPLY=( ${COMPREPLY[@]} ${COMPREPLY_SAVE[@]} )
+
+    return 0
+}
+complete -F _scp scp
+
+
+_tar()
+{
+    local cur ext regex tar untar
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    # if we want an option, return the possible long options
+    case "$cur" in
+    -*)     COMPREPLY=( $(_get_longopts $1 $cur ) ); return 0;;
+    esac
+
+    if [ $COMP_CWORD -eq 1 ]; then
+        COMPREPLY=( $( compgen -W 'c t x u r d A' -- $cur ) )
+        return 0
+    fi
+
+    case "${COMP_WORDS[1]}" in
+    ?(-)c*f)
+        COMPREPLY=( $( compgen -f $cur ) )
+        return 0
+        ;;
+    +([^Izjy])f)
+        ext='tar'
+        regex=$ext
+        ;;
+    *z*f)
+        ext='tar.gz'
+        regex='t\(ar\.\)\(gz\|Z\)'
+        ;;
+    *[Ijy]*f)
+        ext='t?(ar.)bz?(2)'
+        regex='t\(ar\.\)bz2\?'
+        ;;
+    *)
+        COMPREPLY=( $( compgen -f $cur ) )
+        return 0
+        ;;
+
+    esac
+
+    if [[ "$COMP_LINE" == tar*.$ext' '* ]]; then
+        # complete on files in tar file
+        #
+        # get name of tar file from command line
+        tar=$( echo "$COMP_LINE" | \
+            sed -e 's|^.* \([^ ]*'$regex'\) .*$|\1|' )
+        # devise how to untar and list it
+        untar=t${COMP_WORDS[1]//[^Izjyf]/}
+        COMPREPLY=( $( compgen -W "$( echo $( tar $untar $tar 2>&- ) )" -- "$cur" ) )
+        return 0
+    else
+        # file completion on relevant files
+        COMPREPLY=( $( compgen -G $cur\*.$ext ) )
+    fi
+    return 0
+}
+
+complete -F _tar -o default  tar
+
+
+
+# A meta-command completion function for commands like sudo(8), which need to
+# first complete on a command, then complete according to that command's own
+# completion definition - currently not quite foolproof (e.g. mount and umount
+# don't work properly), but still quite useful - By Ian McDonald, modified by me.
+_my_command()
+{
+    local cur func cline cspec
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    if [ $COMP_CWORD = 1 ]; then
+    COMPREPLY=( $( compgen -c $cur ) )
+    elif complete -p ${COMP_WORDS[1]} &>/dev/null; then
+    cspec=$( complete -p ${COMP_WORDS[1]} )
+    if [ "${cspec%%-F *}" != "${cspec}" ]; then
+        # complete -F <function>
+        #
+        # COMP_CWORD and COMP_WORDS() are not read-only,
+        # so we can set them before handing off to regular
+        # completion routine
+
+        # set current token number to 1 less than now
+        COMP_CWORD=$(( $COMP_CWORD - 1 ))
+        # get function name
+        func=${cspec#*-F }
+        func=${func%% *}
+        # get current command line minus initial command
+        cline="${COMP_LINE#$1 }"
+        # split current command line tokens into array
+        COMP_WORDS=( $cline )
+        $func $cline
+    elif [ "${cspec#*-[abcdefgjkvu]}" != "" ]; then
+        # complete -[abcdefgjkvu]
+        #func=$( echo $cspec | sed -e 's/^.*\(-[abcdefgjkvu]\).*$/\1/' )
+        func=$( echo $cspec | sed -e 's/^complete//' -e 's/[^ ]*$//' )
+        COMPREPLY=( $( eval compgen $func $cur ) )
+    elif [ "${cspec#*-A}" != "$cspec" ]; then
+        # complete -A <type>
+        func=${cspec#*-A }
+    func=${func%% *}
+    COMPREPLY=( $( compgen -A $func $cur ) )
+    fi
+    else
+    COMPREPLY=( $( compgen -f $cur ) )
+    fi
+}
+
+
+_meta_comp()
+{
+    local cur func cline cspec
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    cmdline=${COMP_WORDS[@]}
+    if [ $COMP_CWORD = 1 ]; then
+    COMPREPLY=( $( compgen -c $cur ) )
+    else
+    cmd=${COMP_WORDS[1]}            # find command
+    cspec=$( complete -p ${cmd} )   # find spec of that command
+
+    # COMP_CWORD and COMP_WORDS() are not read-only,
+    # so we can set them before handing off to regular
+    # completion routine:
+    # get current command line minus initial command
+    cline="${COMP_LINE#$1 }"
+    # split current command line tokens into array
+    COMP_WORDS=( $cline )
+    # set current token number to 1 less than now
+    COMP_CWORD=$(( $COMP_CWORD - 1 ))
+    # If current arg is empty, add it to COMP_WORDS array
+    # (otherwise that information will be lost)
+    if [ -z $cur ]; then COMP_WORDS[COMP_CWORD]=""  ;fi
+
+    if [ "${cspec%%-F *}" != "${cspec}" ]; then # if -F then get function:
+        func=${cspec#*-F }
+        func=${func%% *}
+        eval $func $cline       #evaluate it
+    else
+        func=$( echo $cspec | sed -e 's/^complete//' -e 's/[^ ]*$//' )
+        COMPREPLY=( $( eval compgen $func $cur ) )
+    fi
+
+    fi
+
+}
+
+complete -o default -F _meta_comp nohup exec eval trace strace gdb
+complete -o default -F _meta_comp command type which nice
+
+
+# Local Variables:
+# mode:shell-script
+# sh-shell:bash
+# End:
+

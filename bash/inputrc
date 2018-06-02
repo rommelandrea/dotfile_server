@@ -1,0 +1,10 @@
+set meta-flag on
+set input-meta on
+set convert-meta off
+set output-meta on
+set completion-ignore-case on
+set completion-query-items 200
+set colored-stats on
+set show-all-if-ambiguous on
+set expand-tilde on
+set blink-matching-paren on

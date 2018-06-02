@@ -1,0 +1,231 @@
+[user]
+    name = Emmanuel Rouat
+	email = None
+
+[core]
+    editor = vi
+
+[diff]
+    tool = kdiff3
+
+[merge]
+    tool = kdiff3
+
+[help]
+    autocorrect = 30
+
+[color]
+    branch = auto
+    diff = auto
+    status = auto
+
+[push]
+    default = simple
+
+
+[alias]
+    # http://durdn.com/blog/2012/11/22/must-have-git-aliases-advanced-examples/
+
+    # Show git history with tree information
+    h = log --decorate --graph --abbrev-commit --date=short --all --format=format:'%C(bold blue)%h%C(reset) - %C(green)%ad (%ar)%C(reset) %C(bold red)%d%C(reset)%n %s %C(cyan)[%an]%C(reset)'
+
+    # Same, but add dangling revisions
+    hh = log --decorate --graph --abbrev-commit --reflog --date=short --all --format=format:'%C(bold blue)%h%C(reset) - %C(green)%ad (%ar)%C(reset) %C(bold red)%d%C(reset)%n %s %C(cyan)[%an]%C(reset)'
+
+    # List commits in short form, with relative date
+    ls = log --decorate --format=format:'%C(bold blue)%h%C(reset) %C(green)(%ar)%C(reset)%C(red)%d %C(reset)%s%C(cyan) [%cn]'
+
+    # List commits in short form, with changed files
+    ll = log --decorate --numstat --format=format:'%C(bold blue)%h%C(reset) %C(green)(%ar)%C(reset)%C(red)%d %C(reset)%s%C(cyan) [%cn]'
+
+    # ===[GIT RECIPES-START]===
+    #
+
+    c    = config -l
+    s    = status -sb
+    l    = log --pretty=oneline --abbrev-commit --abbrev=4 --decorate -25
+    #ll   = log --pretty=oneline --abbrev-commit --abbrev=4 --decorate
+    g    = log --pretty=oneline --abbrev-commit --abbrev=4 -25 --graph --decorate
+    gg   = log --pretty=oneline --abbrev-commit --abbrev=4 --graph --decorate
+    rp   = rev-parse --short=4
+    b    = branch
+    ss   = !git snapshot
+    save = !git snapshot
+
+
+    # General purpose aliases:
+    #     snapshot
+    #     backup
+    #     stat
+    #     days
+    #
+    # Educational aliases:
+    #    create-file
+    #    simple-commit
+    #    multiple-commit
+    #    simple-loop
+    #    simple-loop2
+    #    clear
+    #    branches
+
+
+    # Alias: snapshot
+    # Example:
+    #
+    #    git snapshot This is my very important commit...
+    #    git snapshot "This is my very important commit..."
+    #    git snapshot
+    #
+    snapshot = "!snapshot() { COMMENT=wip; if [ \"$*\" ]; then  COMMENT=\"$*\"; fi; git add -A; git commit -m \"$COMMENT\"; }; snapshot"
+
+
+    # Alias: backup
+    # Example:
+    #
+    #    git backup This is my very important commit...
+    #    git backup "This is my very important commit..."
+    #
+    backup = "!backup() { git snapshot \"$*\"; git push; }; backup"
+
+
+    # Alias: days
+    # Example:
+    #
+    #    git days
+    #
+    days = "!days() { git log --pretty=format:%cd --date=short | uniq; }; days"
+
+
+    # Alias: stat
+    # Example:
+    #
+    #    git stat
+    #
+    stat = "!stat() { echo -n Number of revisions: ; git log --oneline | wc -l; echo -n Number of developers:; git shortlog -s | wc -l; echo -n Number of days:; git days | wc -l; echo -n The working directory:; du -h -s --exclude=.git; echo -n The git directory:; du -h -s .git; echo -n Number of files in the working dir:; git ls-files | wc -l; }; stat"
+
+
+    # Alias: create-file
+    # Example:
+    #
+    #    git create-file lorem
+    #    git create-file lorem ipsum dolor
+    #
+    create-file = "!createFile() { for name in \"$@\"; do echo $name>$name.txt; done; }; createFile"
+
+
+    # Alias: simple-commit
+    # Example:
+    #
+    #    git simple-commit a
+    #    git simple-commit a b c
+    #
+    simple-commit = "!simpleCommit() { for name in \"$@\"; do git create-file \"$name\"; git snapshot $name; done; }; simpleCommit"
+
+
+    # Alias: multiple-commit
+    # Example:
+    #
+    #    git multi-commit lorem
+    #    git multi-commit lorem ipsum dolor
+    #
+    multi-commit = "!multiCommit() { for name in \"$@\"; do git create-file $name; done; git snapshot \"$*\"; }; multiCommit"
+
+
+    # Alias: simple-loop
+    # Example:
+    #
+    #    git simple-loop lorem 5
+    #
+    simple-loop = "!simpleLoop() { NAME=$1; i="1"; while [ $i -le $2 ]; do git simple-commit $NAME$i; i=$[$i+1]; done; }; simpleLoop"
+
+
+    # Alias: simple-loop2
+    # Example:
+    #
+    #    git simple-loop2 lorem 7 13
+    #
+    simple-loop2 = "!simpleLoop2() { NAME=$1; i=$2; while [ $i -le $3 ]; do git simple-commit $NAME$i; i=$[$i+1]; done; }; simpleLoop2"
+
+
+    # Alias: branches
+    # Example:
+    #
+    #    git branches lorem ipsum dolor
+    #
+    branches = "!branches() { for name in \"$@\"; do git branch $name; done; }; branches"
+
+
+
+    # Clonning with remote branches
+    #
+    # Command to list remote branches:
+    #
+    #    git branch -r | sed "/->/d; s/  origin\///g"
+    #
+    list-remote-branches = "!listRemoteBranches() { git branch -r | sed \"/->/d; s/  origin\\///g\"; }; listRemoteBranches"
+    checkout-remote-branches = "!checkoutRemoteBranches() { for name in `git list-remote-branches`; do git checkout $name; done; }; checkoutRemoteBranches"
+    #
+    # Example:
+    #
+    #   git clone-with-branches dirSrc dirDest
+    #
+        clone-with-branches = "!cloneWithBranches() { git clone $1 $2; cd $2; git checkout-remote-branches; git remote rm origin; }; cloneWithBranches"
+
+    #@todo: check parameters:
+    #   git clone-with-branches URL
+
+
+
+    # Example:
+    #
+    #   git checkout beta
+    #   git set-version 0.1.0
+    #
+    # assumptions:
+    #  - clean repo
+    #
+    # @git get-version === cat version.txt
+
+    set-version = "!setVersion() { echo $1 > version.txt; git snapshot Version $1; git tag -a v$1 -m \"Release $1\";  }; setVersion"
+    get-version = "!getVersion() { cat version.txt; }; getVersion"
+
+
+
+    # Remove old commits
+    #
+    #    git clear-reflog-now
+    #
+    clear-reflog-now = "!clearReflogNow() { git reflog expire --all --expire=now;  }; clearReflogNow"
+    remove-old-commits = "!removeOldCommits() { git clear-reflog-now; git prune;  }; removeOldCommits"
+
+    #
+    # ===[GIT RECIPES-STOP]===
+
+
+    # Show the history of a file
+    filelog = log -u
+
+    # Find a file in codebase
+    ff = "!git ls-files | grep -i"
+
+    # Find a string in codebase
+    fstr = grep -Iin --break
+
+    # Show all aliases
+    alias = "!git config -l | grep alias | cut -c 7-"
+
+    # Reset and clean current branch (use with caution)
+    reload = "!reLoad() { git reset --hard HEAD; git clean -f; }; reLoad"
+
+    # Short aliases
+    amend = commit --amend
+    changed = diff --name-status        # list files that have been modified
+    ffmerge = merge --ff-only           # merge only if fast-forward
+    noffmerge = merge --noff            # no fast-foward merge, even if possible
+    last = log -1 HEAD                  # show last commit
+    lt = describe --tags --abbrev=0     # Describe last tag
+    undo = reset --soft HEAD^
+    unmerged = diff --name-only --diff-filter=U
+	unstage = reset HEAD --             # unstage file
+    who = shortlog -sne                 # show who commited, and how many commits
+

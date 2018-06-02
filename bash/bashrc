@@ -1,0 +1,1137 @@
+#===============================================================
+#
+# Users .bashrc file for bash-4 (or later)
+#
+# This file is read (normally) by interactive shells only.
+# Here is the place to define your aliases, functions and
+# other interactive features like your prompt.
+#
+# kate: syntax bash
+#===============================================================
+
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+
+# Function to run upon exit of shell (cleanup, etc)
+function _user_exit_()
+{
+    \rm -rf ~/.pulse-cookie
+    clear
+}
+trap _user_exit_ 0
+
+
+#-----------------------------------------------------------
+# Management of PATH, LD_LIBRARY_PATH, MANPATH variables...
+# (Inspired by the bash documentation 'pathfuncs')
+# These functions belong in .bash_profile rather than in
+# .bashrc, I guess.
+#-----------------------------------------------------------
+
+# Show $@ (usually PATH) as list
+function p_show()
+{ local p="$@" && for p; do [[ ${!p} ]] &&  echo -e ${!p//:/\\n}; done }
+
+# Filter out empty lines, multiple/trailing slashes, and duplicate entries
+function p_filter()
+{ awk '/^[ \t]*$/ {next} {sub(/\/+$/, "");gsub(/\/+/, "/")}!seen[$0]++' ;}
+
+# Rebuild list of items into ':' separated word (PATH-like)
+function p_build()
+{ paste -sd: ;}
+
+# Clean $1 (typically PATH) and rebuild it
+function p_clean()
+{ local p=${1} && eval ${p}='$(p_show ${p} | p_filter | p_build)' ;}
+
+# Remove $1 from $2 (found on stackoverflow, with modifications)
+function p_rm()
+{ local d=$(echo $1 | p_filter) p=${2} && eval ${p}='$(p_show ${p} | p_filter | grep -xv "${d}" | p_build)' ;}
+
+# Same as previous, but filters on a pattern (dangerous... don't use 'bin' or '/' as pattern!)
+function p_rmpat()
+{ local d=$(echo $1 | p_filter) p=${2} && eval ${p}='$(p_show ${p} | p_filter | grep -v "${d}" | p_build)' ;}
+
+# Delete $1 from $2 and append it cleanly
+function p_append()
+{ local d=$(echo $1 | p_filter) p=${2} && p_rm "${d}" ${p} && eval ${p}='$(p_show ${p} d | p_build)' ;}
+
+# Delete $1 from $2 and prepend it cleanly
+function p_prepend()
+{ local d=$(echo $1 | p_filter) p=${2} && p_rm "${d}" ${p} && eval ${p}='$(p_show d ${p} | p_build)' ;}
+
+
+#-----------------------
+# Greeting, motd etc...
+#-----------------------
+
+# Called at the end of file (so that all functions are defined)
+function greetings()
+{
+    # Big greeting if last command older than 8 hours
+    if [ $(stat --format=%Y ${HISTFILE}) -le $(($(date +%s) - (8*60*60))) ]; then
+        touch ${HISTFILE}   # to prevent greetings on multiple tabs opening
+        ii
+    fi
+    if [ -x "$(command -v fortune)" ] && [ -x "$(command -v cowsay)" ]; then
+        fortune -s | cowsay -f moose
+    fi
+}
+
+
+#-------------------------------------------------------------
+# Color definitions (256 colors) - for this to work, you need
+# to set the $TERM variable to "xterm-256color"
+# In a console (or any non 256 colors capable terminal)
+# these colors will not show.
+# For color naming, I used the following:
+# https://rgbcolorcode.com/
+# https://gist.github.com/MicahElliott/719710
+# Some color names are approximations.
+#-------------------------------------------------------------
+
+alias fgc='tput setaf'  # Set foreground color
+alias bgc='tput setab'  #  '' background ''
+alias saveterm='tput smcup'
+alias restoreterm='tput rmcup'
+
+# Blackish
+Black=$(fgc 0)          ; OnBlack=$(bgc 0)
+Gray=$(fgc 102)
+
+# Redish
+Magenta=$(fgc 13)
+Red=$(fgc 196)          ; OnRed=$(bgc 196)
+Crimson=$(fgc 161)
+Burgundy=$(fgc 88)
+
+# Greenish
+Green=$(fgc 10)         ; OnGreen=$(bgc 10)
+Forest=$(fgc 28)
+Chartreuse=$(fgc 118)
+Lime=$(fgc 154)
+
+# Blueish
+LBlue=$(fgc 153)
+Capri=$(fgc 39)
+Azure=$(fgc 33)         ; OnAzure=$(bgc 33)
+Blue=$(fgc 21)          ; OnBlue=$(bgc 21)
+Cobalt=$(fgc 25)
+
+# Yellowish
+Yellow=$(fgc 11)
+Blond=$(fgc 229)
+Gold=$(fgc 220)
+Orange=$(fgc 208)
+
+# Cyanish
+LCyan=$(fgc 195)
+Turquoise=$(fgc 44)
+Cyan=$(fgc 14)          ; OnCyan=$(bgc 14)
+DCyan=$(fgc 30)
+
+# Misc
+Lavender=$(fgc 189)
+Orchid=$(fgc 170)
+Pink=$(fgc 218)
+HotPink=$(fgc 205)
+
+# Whiteish
+White=$(fgc 15)         ; OnWhite=$(bgc 15)
+Cream=$(fgc 230)
+
+# Reset
+Reset=$(tput sgr0)
+
+# Echo colored string, then reset color (handle string length pb too)
+function echoc() { echo -en "\x01${1}\x02${2:-}\x01${Reset}\x02" ; }
+
+
+
+#===============================================================
+# SHELL SETTINGS
+#===============================================================
+
+# Useful for debuging
+alias debug='set -o nounset; set -o xtrace'
+
+ulimit -S -c 0      # Don't want any coredumps
+set -o notify
+set -o noclobber
+set -o ignoreeof
+
+# Enable options:
+shopt -s cdspell
+shopt -s cdable_vars
+shopt -s checkhash
+shopt -s checkwinsize
+shopt -s sourcepath
+shopt -s no_empty_cmd_completion
+shopt -s cmdhist
+shopt -s histappend histreedit
+shopt -s progcomp
+shopt -s extglob    # useful for programmable completion
+
+# Disable options:
+shopt -u mailwarn
+unset MAILCHECK
+
+export TIMEFORMAT=$'\nreal %3R\tuser %3U\tsys %3S\tpcpu %P\n'
+export HISTTIMEFORMAT=$(echoc ${Capri} "[%F %T] ")
+export HISTIGNORE='&:?:??:exit:top:* --help:[h ]*'
+export HISTCONTROL=erasedups
+export HISTFILE=~/.bash_eternal_history
+
+#===============================================================
+# SHELL PROMPT
+#===============================================================
+#  For good examples, see:
+#   http://www.debian-administration.org/articles/205
+#   http://www.askapache.com/linux/bash-power-prompt.html
+#   http://tldp.org/HOWTO/Bash-Prompt-HOWTO/
+# https://github.com/nojhan/dotfiles/blob/master/prompt.bash
+#   https://github.com/Bash-it/bash-it
+# http://stackoverflow.com/questions/22706538/getting-a-dynamic-bash-prompt-ps1-right
+#   (and many others...)
+#-------------------------------------------------------------
+#   Format: (TIME)(USER@HOST)(PWD)(GIT)(jobs)>
+#-------------------------------------------------------------
+#   TIME:
+#       (time)      == network accessible
+#       [time]      == no network
+#       Color gives us load information:
+#       LBlue       == machine load is low
+#       Capri       == machine load is medium
+#       Cobalt      == machine load is high
+#       Alert       == machine load is very high
+#
+#   USER@HOST: appears only if not login user on local machine
+#       USER:
+#           absent  == login user
+#           Red     == root
+#           Orchid  == SU to user
+#       HOST:
+#           absent  == local session
+#           Cyan    == secured remote connection (via ssh)
+#           Alert   == unsecured remote connection
+#
+#   PWD: loosely trimmed to a max of 'n' caracters
+#       (pwd)       == directory is writable by user
+#       [pwd]       == directory is not writable by user
+#       Color gives us disk occupation information:
+#       Burgundy    == directory is either 0-size or inexistent
+#       Chartreuse  == more than 15% free disk space
+#       Orange      == less than 15% free disk space
+#       Red         == less than 10% free disk space
+#       Alert       == less than 5% free disk space
+#
+#   GIT: appears only if in a git repo
+#       Format (branch_type→branch_name branch_symbols @:remote_symbols)
+#       branch type:
+#           β→      == standard branch ('beta' for 'branch')
+#           δ→      == detached head ('delta' for 'detached')
+#       branch name: (if detached head, is tag (if available) or sha)
+#           Gold    == clean
+#           Crimson == dirty
+#       branch symbols (appear if n>0):
+#           n⚡      == n unmerged files     (Alert)
+#           n≠      == n modified files     (Cyan)
+#           n✝      == n deleted files      (Magenta)
+#           n^      == n staged files       (Chartreuse)
+#           n?      == n untracked files    (Azure)
+#           n≡      == n stashed files      (Yellow)
+#       @: (rest of prompt appears only if branch is tracked in remote repo) :
+#           Gold    == clean/remote accessible
+#           Crimson == diverged/remote not accessible
+#       remote symbols:
+#           ✓       == synced with remote
+#           ✗       == remote not accessible
+#           n↑      == ahead by n files (need to push 'up')
+#           n↓      == behind by n files (need to pull 'down')
+#
+#   JOBS: appears only if background jobs are running/suspended
+#       (n⌁/m⌛)     == n running, m suspended background jobs (Cream)
+#
+#   >: color indicates exit status of last command
+#       LBlue       == success
+#       Crimson     == fail
+#
+#    Commands are added to the history file each time you hit enter so its
+#    available to all shells (using 'history -a')
+
+#
+
+# Save the last command exit status, and write to history file
+PROMPT_COMMAND='_status_=$?; if [ ${_status_} -eq 0 ]; then history -a; fi'
+
+
+# Returns system load as percentage (i.e '40' instead of '0.40')
+function load()
+{
+    local SYSLOAD=($(< /proc/loadavg))      # system load of the current host
+    echo $((10#${SYSLOAD[0]/./}))           # convert to integer percentage
+}
+
+
+# Returns time, color indicating system load
+# Define system load thresholds
+_NCPU_=$(grep -c 'processor' /proc/cpuinfo)     # number of CPUs
+_XLOAD_=$((200*${_NCPU_}))  # Xlarge load
+_HLOAD_=$((100*${_NCPU_}))  # Heavy load
+_MLOAD_=$(( 50*${_NCPU_}))  # Medium load
+function _time_prompt_()
+{
+    # Check if we are on a network
+    [ -n "$(hostname -I)" ] && local open="(" close=")" || local open="[" close="]"
+    # Now check machine load
+    local SYSLOAD=$(load) TIME=$(date +"%H:%M")
+    if [ ${SYSLOAD} -gt ${_XLOAD_} ]; then
+        echoc ${OnAzure} ${open}${TIME}${close}
+    elif [ ${SYSLOAD} -gt ${_HLOAD_} ]; then
+        echoc ${Cobalt} ${open}${TIME}${close}
+    elif [ ${SYSLOAD} -gt ${_MLOAD_} ]; then
+        echoc ${Capri} ${open}${TIME}${close}
+    else
+        echoc ${LBlue} ${open}${TIME}${close}
+    fi
+}
+
+function _user_prompt_()
+{
+    local open="" close=""
+    # Test user type:
+    if [[ ${USER} == "root" ]]; then                # User is root
+        open=$(echoc ${Red} "(root") close=$(echoc ${Red} ")")
+    elif [[ ${USER} != $(logname) ]]; then          # User is not login user
+        open=$(echoc ${Orchid} "(${USER}") close=$(echoc ${Orchid} ")")
+    fi
+    # Test connection type:
+    if [ -n "${LSFUSER}" ]; then                # LSF job
+        [ -n "${close}" ] && close="@" || open=$(echoc ${Orchid} "(")
+        close+=$(echoc ${Orchid} "$(hostname))")
+    fi
+#     # Test connection type:
+#     if [[ "${DISPLAY%%:0*}" == "" ]]; then      # Local connection
+#         echo -en ")"
+#     elif [ -n "${SSH_CONNECTION}" ]; then       # Remote connection via ssh (good)
+#         echoc ${Reset} "@"
+#         echoc ${Cyan} "$(hostname))"
+#     elif [[ "${DISPLAY%%:0*}" != "" ]]; then    # Remote connection not via ssh (bad)
+#         echoc ${OnRed} "@"
+#         echoc ${Cyan} "$(hostname))"
+#     fi
+    echo -en ${open}${close}
+}
+
+
+# Returns a trimmed PWD, color indicating free disk space
+function _pwd_prompt_()
+{
+    # Check if current directory is 'writable'
+    [ -w "${PWD}" ] && local open="(" close=")" || local open="[" close="]"
+
+    # The following loop will trim 'pwd' prompt to less than 'pwdlength' chars (default 20),
+    # but keeps the leaf names intact (the last one regardless of its length)
+    local dirprompt=${PWD/${HOME}/'~'} pwdlength=${1:-20} prefix
+    while [ ${#dirprompt} -gt ${pwdlength} ] && [[ ${dirprompt} == */* ]]; do
+        prefix="/../"
+        dirprompt=${dirprompt#*/}
+    done
+    [[ ${PWD} == ${HOME}* ]] && [ ${prefix} ] && prefix="~/../"
+
+    # Check current directory size and/or existence
+    if [ -d "${PWD}" ]; then
+        local used=( $(command df -P "${PWD}") ) ; used=${used[11]/\%/}
+    else
+        local used='-'
+    fi
+    if [ ${used} == '-' ] ; then
+        local pwdcolor=${Burgundy}      # current directory is weird (stale nfs?)
+    elif [ ${used} -lt 85 ]; then
+        local pwdcolor=${Chartreuse}    # free disk space is ok
+    elif [ ${used} -lt 90 ]; then
+        local pwdcolor=${Orange}        # free disk space gets small
+    elif [ ${used} -lt 95 ]; then
+        local pwdcolor=${Red}           # free disk space gets really small
+    else
+        local pwdcolor=${On_Red}        # disk almost full
+    fi
+    echoc ${pwdcolor} "${open}${prefix}${dirprompt}${close}"
+}
+
+# Git support (needs git > 2.0 probably)
+# Very much inspired by Michael Gonderman’s (@magicmonty) bash-git-prompt
+# (which seems in turn inspired by https://github.com/olivierverdier/zsh-git-prompt)
+# http://stackoverflow.com/questions/4548784/is-there-any-test-git-repository-available
+function _git_prompt_()
+{
+    # Is this a git working tree?
+    local repo=$(git rev-parse --show-toplevel 2>&-)
+    if [ -n "${repo}" ]; then
+        local open="(" branchcolor branch close=")"
+        local head=$(git rev-parse --abbrev-ref HEAD 2>&-)
+        if [ ${head} != 'HEAD' ]; then                  # standard branch
+            branch="β→${head}"
+        else                                            # detached head
+            local tag=$(git describe --tags 2>&-)
+            local sha=$(git log --pretty=format:'%h' -n1 2>&-)
+            branch="δ→${tag:-${sha}}"
+        fi
+        local unmerged=$(git diff --name-only --diff-filter=U | wc -l)
+        local modified=$(git diff --name-only --diff-filter=M | wc -l)
+        local deleted=$(git diff --name-only --diff-filter=D | wc -l)
+        local staged=$(git diff --name-only --staged | wc -l)
+        local untracked=$(git ls-files --others --exclude-standard | wc -l)
+        local stashed=$(git stash list | wc -l)
+        local dirty=$((unmerged + modified + staged + deleted))
+        local extras=$((untracked + stashed))
+        if [ ${dirty} -gt 0 ]; then
+            branchcolor=${Crimson} branch+=":"
+        elif [ ${extras} -gt 0 ]; then
+            branchcolor=${Gold} branch+=":"
+        else
+            branchcolor=${Gold}
+        fi
+        open=$(echoc ${branchcolor} ${open}) close=$(echoc ${branchcolor} ${close})
+        branch=$(echoc ${branchcolor} ${branch})
+        [ ${unmerged} -gt 0 ] && branch+=$(echoc ${OnRed} "${unmerged}⚡")
+        [ ${modified} -gt 0 ] && branch+=$(echoc ${Cyan} "${modified}≠")
+        [ ${deleted} -gt 0 ] && branch+=$(echoc ${Magenta} "${deleted}✝")
+        [ ${staged} -gt 0 ] && branch+=$(echoc ${Chartreuse} "${staged}^")
+        [ ${untracked} -gt 0 ] && branch+=$(echoc ${Azure} "${untracked}?")
+        [ ${stashed} -gt 0 ] && branch+=$(echoc ${Blond} "${stashed}≡")
+
+        # Is there is a remote repo of this branch ?
+        local remotes=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD) 2>&-)
+        if [ ${#remotes} -gt 0 ] && [ ${head} != 'HEAD' ]; then
+            # If so, handle info from upstream repo branch
+            local FETCH_HEAD=${repo}/.git/FETCH_HEAD
+            # Update if last fetch is older than 30*60 seconds
+            local last_fetch=$(stat --format=%Y "${FETCH_HEAD}" 2>&-)
+            if [ ${last_fetch:-0} -le $(($(date +%s) - (30*60))) ]; then
+                git fetch --quiet 2>&-
+            fi
+            local fetch_success=$(grep -cs '\S' "${FETCH_HEAD}")
+            if [ ${fetch_success} -eq 0 ]; then
+                local remote=$(echoc ${Crimson} " @:✗")
+            else
+                local ahead=$(git rev-list @{u}..HEAD --count)
+                local behind=$(git rev-list HEAD..@{u} --count)
+                if [ $((ahead + behind)) -eq 0 ]; then
+                    local remote=$(echoc ${Gold} " @:✓")
+                else
+                    local remote=$(echoc ${Crimson} " @:")
+                    [ ${ahead} -gt 0 ] && remote+=$(echoc ${Cyan} "${ahead}↑")
+                    [ ${behind} -gt 0 ] && remote+=$(echoc ${Magenta} "${behind}↓")
+                fi
+            fi
+        fi
+        echo -en ${open}${branch}${remote}${close}
+    fi
+}
+
+# Test running/suspended jobs
+function _job_prompt_()
+{
+    local running=$(jobs -r | wc -l)
+    local stopped=$(jobs -s | wc -l)
+    if [ $((running + stopped)) -gt 0 ]; then
+        echoc ${Cream} "(${running}⌁/${stopped}⌛)"
+    fi
+}
+
+# Last part of prompt - color indicates last command status
+function _close_prompt_()
+{
+    # Check last command exit status
+    if [ ${_status_} -eq 0 ]; then
+        echoc ${LBlue} "> "
+    else
+        echoc ${Crimson} "> "
+    fi
+}
+
+# Now we construct the prompt
+case ${TERM} in
+    *term* | rxvt)
+        PS1="\[\e]0;[\u@\h] \w\a\]"     # Title of current xterm
+        PS1+="\$(_time_prompt_)"        # Time of day (with load info)
+        PS1+="\$(_user_prompt_)"        # User@Host (with user/connection info)
+        PS1+="\$(_pwd_prompt_ 14)"      # Trimmed PWD (with 'disk space' info)
+        PS1+="\$(_git_prompt_)"         # Git info (only if in git repo)
+        PS1+="\$(_job_prompt_)"         # Jobs info (if any)
+        PS1+="\$(_close_prompt_)"       # Last command status (success/fail)
+        ;;
+    linux)
+        PS1="\$(_user_prompt_)"         # User@Host (with user/connection info)
+        PS1+="\$(_pwd_prompt_ 14)"      # Trimmed PWD (with 'disk space' info)
+        PS1+="\$(_job_prompt_)"         # Jobs info (if any)
+        PS1+="\$(_close_prompt_)"       # Last command status (success/fail)
+        ;;
+    *)
+        PS1="(\A \u@\h \W) > "
+        ;;
+esac
+
+
+#===============================================================
+# PROGRAMMING ENVIRONMENTS
+#===============================================================
+
+if [[ $(whoami) != "root" ]]; then  # only for users - not root
+
+    #-------------------------------------------------------------
+    # PATH variable
+    #-------------------------------------------------------------
+    p_prepend $HOME/bin PATH
+
+    #-------------------------------------------------------------
+    # Python 2.7/3.5
+    #-------------------------------------------------------------
+    export PYTHONHOME=/opt/anaconda3-4.2.0      # for cython
+    export PYTHONPATH=${HOME}/Python/lib/python3.5/site-packages
+    p_prepend ${PYTHONHOME}/bin PATH
+    p_prepend ${HOME}/Python/bin PATH
+
+    function spyder() { { command spyder "$@" 2>&- & } && disown  $! ; }
+    function localinstall()
+    {
+        python setup.py install --prefix=~/Python
+    }
+
+
+    #-------------------------------------------------------------
+    # Pypy
+    #-------------------------------------------------------------
+    export PYPYHOME=/opt/pypy2-v5.3.1-linux64
+    p_append ${PYPYHOME}/bin PATH
+
+    #-------------------------------------------------------------
+    # Dlang
+    #-------------------------------------------------------------
+    export DHOME=/opt/dmd2
+    p_append ${DHOME}/linux/bin64 PATH
+    p_append ${DHOME}/linux/lib64 LD_LIBRARY_PATH
+
+    #-------------------------------------------------------------
+    # Fortran
+    #-------------------------------------------------------------
+    export GCCHOME=/opt/gcc-4.9
+    p_append ${GCCHOME}/bin PATH
+    p_append ${GCCHOME}/lib64 LD_LIBRARY_PATH
+
+    #-------------------------------------------------------------
+    # Julia
+    #-------------------------------------------------------------
+    export JULIAHOME=/opt/julia-git
+    p_append ${JULIAHOME}/usr/bin PATH
+
+    #-------------------------------------------------------------
+    # Git
+    #-------------------------------------------------------------
+
+    # Aliases/functions
+    alias gg='git status'
+    alias gh='git h'
+    alias go='git checkout'
+
+    function gk() { git diff "$@" | kompare - ; }
+
+    # Completion
+    if [ -f ~/.config/bash/git-completion.bash ]; then
+        source ~/.config/bash/git-completion.bash
+        __git_complete go _git_checkout
+    fi
+
+    export PATH
+    export LD_LIBRARY_PATH
+
+fi   # End of 'programming' specific sections
+
+
+#===============================================================
+# ALIASES AND FUNCTIONS
+#===============================================================
+
+# Prevents accidental file clobbering:
+alias mv='mv -i'
+alias cp='cp -i'
+alias rm='rm -i'
+
+alias mkdir='mkdir -p'
+alias ..='cd ..'
+alias h='history'
+alias j='jobs -l'
+alias which='type -all'
+
+# Pretty-print of some PATH variables:
+alias path='echo -e ${PATH//:/\\n}'
+alias libpath='echo -e ${LD_LIBRARY_PATH//:/\\n}'
+alias pypath='echo -e ${PYTHONPATH//:/\\n}'
+
+alias du='du -kh'   # makes a more readable output
+alias df='df -kTh'
+
+alias makepatch='diff -Nur'
+alias fullcpu='while : ; do : ; done'
+
+alias nice='nice '  # allows expansion of aliases after 'nice'
+
+#-------------------------------------------------------------
+# The 'ls' family (this assumes you use a recent GNU ls)
+#-------------------------------------------------------------
+
+if [ -f ~/.dircolors ]; then
+    eval $(dircolors ~/.dircolors)
+fi
+
+
+# Add colors for filetype and  human-readable sizes by default on 'ls':
+alias ls='ls -h --color'
+alias lx='ls -lXB'      # sort by extension
+alias lk='ls -lSr'      # sort by size, biggest last
+alias lt='ls -ltr'      # sort by date, most recent last
+alias lc='ls -ltcr'     # sort by/show change time, most recent last
+alias lu='ls -ltur'     # sort by/show access time, most recent last
+
+# The ubiquitous 'll' command: directories first, with alphanumeric sorting
+alias ll='ls -lv --group-directories-first'
+alias lll='ll | less'   # pipe through 'less'
+alias lr='ll -R'        # recursive ls
+alias la='ll -A'        # show hidden files
+
+alias tree='tree -Csuh' # nice alternative to 'recursive ls'
+
+# Spelling typos
+alias xs='cd'
+alias vf='cd'
+alias moer='more'
+alias moez='more'
+alias motr='more'
+alias kk='ll'
+
+
+#-------------------------------------------------------------
+# Tailoring 'less'
+#-------------------------------------------------------------
+
+alias more='less'
+export PAGER=less
+export LESSCHARSET=utf-8
+export LESSOPEN='| lesspipe.sh %s'
+export LESS='-i  -e -M -R -F -X -P%t?f%f :stdin .?pb%pb\%:?lbLine %lb:?bbByte %bb:-...'
+
+# LESS man page colors (http://stealthefish.com/development/2014/04/26/Better-bash-man-pages.html)
+#export LESS_TERMCAP_mb=$'\E[0;103m'     # begin blinking
+export LESS_TERMCAP_mb=$(tput bold; tput setaf 2)   # green
+export LESS_TERMCAP_md=$(tput bold; tput setaf 3)   # begin bold yellow
+export LESS_TERMCAP_me=$(tput sgr0)                 # end mode
+export LESS_TERMCAP_so=$(tput bold; tput setaf 8; tput setab 3) # begin standout-mode (info box)
+export LESS_TERMCAP_se=$(tput rmso; tput sgr0)                  # end standout-mode
+export LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 2)    # begin underline
+export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)                  # end underline
+export LESS_TERMCAP_mr=$(tput rev)
+export LESS_TERMCAP_mh=$(tput dim)
+export LESS_TERMCAP_ZN=$(tput ssubm)
+export LESS_TERMCAP_ZV=$(tput rsubm)
+export LESS_TERMCAP_ZO=$(tput ssupm)
+export LESS_TERMCAP_ZW=$(tput rsupm)
+
+
+#-------------------------------------------------------------
+# A few fun ones
+#-------------------------------------------------------------
+
+# Change terminal title (if applicable)
+function termtitle()
+{
+    case "$TERM" in
+        *term* | rxvt)
+            echo -en  "\e]0;$*\a" ;;
+        *)  ;;
+    esac
+}
+
+alias top='termtitle Processes on ${HOSTNAME} && top'
+alias ncftp='termtitle ncFTP && ncftp'
+
+function make()
+{
+    termtitle Making $(basename $(pwd)| tr - " " | tr _ " ") on "$HOSTNAME"
+    nice make $* 2>&1 | colormake.pl $LINES $COLUMNS
+}
+
+alias weather='curl wttr.in/grenoble'
+
+#-------------------------------------------------------------
+# Make the following commands run in background automatically:
+#-------------------------------------------------------------
+
+function soffice() { command soffice "$@" & }
+function firefox() { command firefox "$@" & }
+function okular() { command okular "$@" & }
+function kate() { command kate "$@" & }
+
+
+#-------------------------------------------------------------
+# File & strings related functions:
+#-------------------------------------------------------------
+
+
+# Turn a string to lowercase
+function tolower() { echo ${@,,} ; }
+
+# Handy wrapper to view/edit files with appropriate viewer
+function te()
+{
+    for file; do
+        case $(tolower ${file}) in
+            *.od*)      soffice "${file}"       ;;
+            *.doc*)     soffice "${file}"       ;;
+            *.ppt*)     soffice "${file}"       ;;
+            *.xls*)     soffice "${file}"       ;;
+            *.pdf)      okular "${file}"        ;;
+            *.ps)       okular "${file}"        ;;
+            *.ps.gz)    okular "${file}"        ;;
+            *.ps.bz2)   okular "${file}"        ;;
+            *.bmp)      gwenview "${file}"      ;;
+            *.gif)      gwenview "${file}"      ;;
+            *.jp*g)     gwenview "${file}"      ;;
+            *.png)      gwenview "${file}"      ;;
+            *.tiff)     gwenview "${file}"      ;;
+            *.bz2)      bzmore "${file}"        ;;
+            *.gz)       zmore "${file}"         ;;
+            *.xz)       xzmore "${file}"        ;;
+            *.z)        zmore "${file}"         ;;
+            *)          kate "${file}"          ;;
+        esac
+    done
+}
+
+# Find a file with a pattern in name:
+function ff() { find . -type f -iname '*'"$*"'*' ; }
+
+# Find a file with pattern $1 in name and Execute $2 on it:
+function fe() { find . -type f -iname '*'"${1:-*}"'*' -exec ${2:-ls -alh} {} \;  ; }
+
+# Find a pattern in a set of files and highlight them:
+# (needs a recent version of egrep)
+function fstr()
+{
+    local mycase=""
+    local usage="fstr: find string in files.
+Usage: fstr [-i] \"pattern\" [\"filename pattern\"] "
+    OPTIND=1
+    while getopts :it opt
+    do
+        case "$opt" in
+            i) mycase="-i " ;;
+            *) echo "$usage"; return ;;
+        esac
+    done
+    shift $(( $OPTIND - 1 ))
+    if [ "$#" -lt 1 ]; then
+        echo "$usage"
+        return;
+    fi
+    find . -type f -wholename "${2:-*}" -print0 | \
+        xargs -0 grep --color=always -sn ${mycase} "$1" 2>&- | sort
+}
+
+# Make directories and files access rights sane
+function saneaccess() { chmod -R u=rwX,g=rX,o= "$@" ;}
+
+
+# Sanitize directory tree
+# -> make directories and files access rights correct
+# -> lowercase all file extensions
+# -> .jpeg becomes .jpg, .htm becomes .html etc
+function sanitize()
+{
+    echo "Make directories access rights sane..."
+    chmod -R u=rwX,g=rX,o= ${PWD}
+    echo "Lowercasing/standardising all file extensions..."
+    for f in $(find . -name '*.*')
+    do
+        name="${f%.*}"
+        ext="${f##*.}" # now, test if there a uppcase chars in ext:
+        test=$(echo $ext | grep [A-Z])
+        if [ "$?" = "0" ]; then   # Uppercase letters found.
+            ext=$(echo "${ext}" | tr [:upper:] [:lower:])
+            case "${ext}" in
+                jpeg)   ext="jpg"       ;;
+                htm)    ext="html"      ;;
+                tgz)    ext="tar.gz"    ;;
+            esac
+            mv -v ${f} ${name}.${ext}
+        fi
+    done
+}
+
+
+# Size of directories in MB
+function ds()
+{
+    echo -e "Size of directories in MB"
+    if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+        find . -maxdepth 1 -type d -exec du -sm \{\} \; | sort -nr
+    else
+        find "$1" -maxdepth 1 -type d -exec du -sm \{\} \; | sort -nr
+    fi
+}
+
+# Handy wrapper to extract compressed files
+function extract()
+{
+    for file; do
+        case $(tolower ${file}) in
+            *.tar)       tar xvf "${file}"      ;;
+            *.tgz)       tar xvf "${file}"      ;;
+            *.tar.gz)    tar xvf "${file}"      ;;
+            *.tbz2)      tar xvf "${file}"      ;;
+            *.tar.bz2)   tar xvf "${file}"      ;;
+            *.txz)       tar xvf "${file}"      ;;
+            *.tar.xz)    tar xvf "${file}"      ;;
+            *.gz)        gunzip -v "${file}"    ;;
+            *.bz2)       bunzip2 -v "${file}"   ;;
+            *.rar)       unrar x "${file}"      ;;
+            *.xz)        unxz -v "${file}"      ;;
+            *.zip)       unzip "${file}"        ;;
+            *.z)         gunzip -v "${file}"    ;;
+            *.7z)        7z x "${file}"         ;;
+            *)           echo "'${file}' cannot be extracted via >extract<" ;;
+        esac
+    done
+}
+
+
+function tomp4()
+{
+    for f; do
+        local output="${f%.*}.mp4"
+        echo "Converting ${f} to ${output}..."
+        avconv -v error -i "${f}" -codec copy "${output}"
+        echo "Moving ${f} to $PWD..."
+        mv "${output}" .
+    done
+}
+
+
+# Creates an archive from given directory
+function maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }
+
+# Create a ZIP archive of a file or folder
+function makezip() { zip -r "${1%%/}.zip" "$1" ; }
+
+# Find non-ascii (unicode?) caratcters in files
+function findnonascii() { LANG=C grep -n --color=always '[^ -~]\+' "$@"; }
+
+# Center text in console with simple pipe like ( command | center )
+function left_align()
+{
+    local lines="$(cat -)" l s j
+    [ -n "$1" ] && s=$1 || s=0
+    echo "$lines" | while read l;do j=$s;echo -e "$(while ((j-->0)); do printf " ";done;)$l";done;
+}
+
+# Center text in console with optional offset and simple pipe like ( command | center 50 )
+function center()
+{
+    local lines="$(cat -)" l s j
+    [ -n "$1" ] && s=$(( 2*$1 )) || s=${COLUMNS}
+    echo "$lines" | while read l;do j=$(( (s-$(echo -e "$l"|cleanstr|wc -c))/2 ));echo -e "$(while ((--j>0));do printf " ";done;)$l";done;
+}
+
+# Right-align text in console with optional offset and simple pipe like ( command | right_align 30)
+function right_align()
+{
+    local lines="$(cat -)" l s j
+    [ -n "$1" ] && s=$1 || s=${COLUMNS}
+    echo "$lines" | while read l;do j=$(((s-$(echo -e "$l"|cleanstr|wc -c))));echo -e "$(while ((j-->0));do printf " ";done;)$l";done;
+}
+
+
+# Cursor position functions
+# (http://unix.stackexchange.com/questions/88296/get-vertical-cursor-position)
+function curpos()
+{
+    local CURPOS
+    read -sdR -p $'\E[6n' CURPOS
+    CURPOS=${CURPOS#*[} # Strip decoration characters <ESC>[
+    echo "${CURPOS}"    # Return position in "row;col" format
+}
+
+function currow()
+{
+    local ROW COL
+    IFS=';' read -sdR -p $'\E[6n' ROW COL
+    echo "${ROW#*[}"
+}
+
+function curcol()
+{
+    local ROW COL
+    IFS=';' read -sdR -p $'\E[6n' ROW COL
+    echo "${COL}"
+}
+
+# Extract a particular column of space-separated output
+# e.g.: lsof | getcolumn 0 | sort | uniq
+function getcolumn() { perl -ne '@cols = split; print "$cols['$1']\n"' ; }
+
+# Create box of '#' characters around given string
+function box() { t="$1xxxx";c=${2:-#}; echo ${t//?/$c}; echo "$c $1 $c"; echo ${t//?/$c}; }
+
+
+# Crypt/decrypt functions for one file
+alias encrypt="gpg -c "
+alias decrypt="gpg -d "
+
+
+#-------------------------------------------------------------
+# Process/system related functions:
+#-------------------------------------------------------------
+
+function my_ps() { ps "$@" -u $USER -o pid,%cpu,%mem,bsdtime,command ; }
+function pp() { my_ps f | awk '!/awk/ && $0~var' var=${1:-".*"} ; }
+
+# Kill by process name (or part of name)
+function killps()
+{
+    local pid pname sig="-TERM"   # default signal
+    if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+        echo "Usage: killps [-SIGNAL] pattern"
+        return;
+    fi
+    if [ $# = 2 ]; then sig=$1 ; fi
+    for pid in $(my_ps| awk '!/awk/ && $0~pat { print $1 }' pat=${!#} ) ; do
+        pname=$(my_ps | awk '$1~var { print $5 }' var=$pid )
+        if ask "Kill process $pid <$pname> with signal $sig?"
+            then kill $sig $pid
+        fi
+    done
+}
+
+# Inspired by 'dfc' utility
+function dfstats()
+{
+    for fs in "${@:-${PWD}}"; do # use PWD if no filesystem name is provided
+        if [ ! -d "${fs}" ]; then echo ${fs} ": No such file or directory" ; continue ; fi
+        local rawstats=( $(command df -P "${fs}" | awk 'END{ print $2,$3 }') )
+        local readable=( $(command df -Ph "${fs}" | awk 'END{ print $2,$4,$5 }') )
+        local nbstars=$(( 20*${rawstats[1]}/${rawstats[0]} ))
+        local bar="["
+        for ((j=0;j<20;j++)); do
+            if [ ${j} -le ${nbstars} ]; then
+                bar+="*"
+            else
+                bar+="-"
+            fi
+        done
+        bar+="]"
+        echo -e "${bar} ${readable[1]}/${readable[0]} (${readable[2]} used) on ${fs}"
+    done
+}
+
+
+# Get local IP adress
+function local_ip()
+{
+    local loc_ip=$(hostname -I)
+    echo ${loc_ip:-"Not connected"}
+}
+
+function cputemp()
+{
+    local temps=($(cat /sys/class/hwmon/hwmon1/device/*_input))
+    local cpu=1
+    for t in ${temps[@]}; do
+        echo -en ${Cyan}$"CPU"${cpu}": "${Reset};
+        echo -en ${IRed}$((${t}/1000))"°C  "${Reset};
+        ((cpu+=1));
+    done
+    echo
+}
+
+# Convert bytes to human-readable format
+function bytes2hr()
+{
+    local SIZE=$1
+    local UNITS=(B K M G T P) e=0
+    while [ ${SIZE%.*} -gt 1024 ]
+    do
+        SIZE=$(echo "${SIZE}/1024" | bc -l)
+        let e++
+    done
+    printf "%.0f%s" ${SIZE} ${UNITS[e]}
+}
+
+function memstats()
+{
+    local stats=($(free -b))
+    local nbstars=$(( 20*${stats[8]}/${stats[7]} ))
+    local percent=$(( 100*${stats[8]}/${stats[7]} ))
+    local total=$(bytes2hr ${stats[7]})
+    local swaptotal=$(bytes2hr ${stats[18]}) swapused=$(bytes2hr ${stats[19]})
+    local bar="["
+    for ((j=0;j<20;j++)); do
+        if [ ${j} -le ${nbstars} ]; then
+            bar+="*"
+        else
+            bar+="-"
+        fi
+    done
+    bar+="]"
+    echo -e "${bar} ${percent}% of ${total} used (swap: ${swapused}/${swaptotal})"
+}
+
+# Align strings vertically with offset
+function vertical_align()
+{
+    tput cub ${1:-0}
+    while read -r line; do
+        tput cuf ${1:-0}
+        printf "${line}\n";
+    done
+}
+
+
+# Pretty-print of current host related info
+function ii()
+{
+    echo -e  "${Yellow}-------------------------------------- LOGIN --------------------------------------"
+    echo -en "${Magenta}Current machine.............: ${Cyan}"   ; echo "$(uname -n) ($(uname -m))"
+    echo -en "${Magenta}Current OS..................: ${Cyan}"   ; uname -o
+    echo -en "${Magenta}Number of CPUS..............: ${Cyan}"   ; echo $(grep -c 'processor' /proc/cpuinfo)
+    echo -en "${Magenta}Temperature of CPUS.........: ${Cyan}"   ; cputemp
+    echo -en "${Magenta}Users logged on.............: ${Cyan}"   ; w -hs | cut -d " " -f1 | sort | uniq
+    echo -en "${Magenta}Current date................: ${Cyan}"   ; date +"%A, %B %d %Y (%R)"
+    echo -en "${Magenta}Machine uptime..............: ${Cyan}"   ; uptime -p
+    echo -en "${Magenta}Free Memory stats...........: ${Cyan}"   ; memstats
+    echo -en "${Magenta}Diskspace Root (/)..........: ${Cyan}"   ; dfstats /
+    echo -en "${Magenta}Diskspace Home (~)..........: ${Cyan}"   ; dfstats ~
+    echo -en "${Magenta}Local IP Address............: ${Cyan}"   ; local_ip
+    echo
+    echo -e  "${Yellow}--------------------------------------- CAD ---------------------------------------"
+    echo -en "${Magenta}Bash version................: ${Cyan}"   ; echo -e ${BASH_VERSION}
+    echo -en "${Magenta}Git version.................: ${Cyan}"   ; echo -e $(git --version)
+    echo -en "${Magenta}Python version..............: ${Cyan}"   ; echo -en $(python --version)
+    echo -en "${Magenta}Pythonpath (if any).........: ${Cyan}"   ; pypath | vertical_align 30
+
+    echo -e ${Reset}
+}
+
+
+#-------------------------------------------------------------
+# Misc utilities:
+#-------------------------------------------------------------
+
+# Repeat n times command
+function repeat()
+{
+    local i max
+    max=$1; shift;
+    for ((i=1; i <= max; i++)); do
+        eval "$@";
+    done
+}
+
+function ask()
+{
+    echo -n "$@" '[y/n] ' ; read ans
+    case "${ans}" in
+        y*|Y*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Clear terminal (including scrollback)
+alias cls="printf '\e[0H\e[J\e[3J'"
+
+
+#===============================================================
+# ROOT SPECIFIC SETTINGS, ALIASES AND FUNCTIONS
+#===============================================================
+
+if [[ $(whoami) = "root" ]]; then
+    export HISTFILE="$HOME/.root_history"
+
+    alias up="ifconfig eth0 up && logs /var/log/syslog"
+    alias down="ifconfig eth0 down"
+
+    alias detach="udisks --detach /dev/sdb"
+
+    function logs ()
+    {
+        local file=${1:-/var/log/syslog}
+        termtitle LOGS $file ; tail --follow $file | ccze
+    }
+
+    #-------------------------------------------------------------
+    # Firewall functions
+    #-------------------------------------------------------------
+
+    function fw_close()     # Close a port
+    {
+        for PORT in $* ; do
+            echo "Closing port $PORT"
+            /sbin/iptables -A INPUT -i ppp0 -p TCP --dport $PORT -j REJECT
+            /sbin/iptables -A OUTPUT -o ppp0 -p TCP --sport $PORT -j REJECT
+        done
+    }
+
+    function fw_open()      # Open a port
+    {
+        for PORT in $* ; do
+            echo "Opening port $PORT"
+            /sbin/iptables -A INPUT -i ppp0 -p TCP  --dport $PORT -j ACCEPT
+            /sbin/iptables -A OUTPUT -o ppp0 -p TCP --sport $PORT -j ACCEPT
+        done
+    }
+
+    function fw_block_ip()  # block IP
+    {
+        for IP in $* ; do
+            echo "Blocking $IP "
+            /sbin/iptables	 -A INPUT -j logdrop -s $IP
+            /sbin/iptables	 -A OUTPUT -j logdrop -d $IP
+        done
+    }
+
+    function fw_allow_ip()
+    {
+        shift;
+        for IP in $* ; do
+            echo "Unblocking $IP"
+            /sbin/iptables -D INPUT -j logdrop -s $IP
+            /sbin/iptables -D OUTPUT -j logdrop -d $IP
+        done
+    }
+
+    function fw_show()
+    {
+        /sbin/iptables --list --numeric
+    }
+
+    function fw_show_all()
+    {
+        /sbin/iptables --list --numeric --verbose
+    }
+
+fi  # End of 'root' specific sections
+
+
+
+#=========================================================================
+# PROGRAMMABLE COMPLETION
+#=========================================================================
+
+if [ -f ~/.bash_completion ]; then
+    source ~/.bash_completion
+fi
+
+
+# Now finaly - greetings!
+greetings
+
+

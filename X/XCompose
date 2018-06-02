@@ -1,0 +1,205 @@
+#include "%L"   # import the default Compose file for your locale
+
+# Accents
+<dead_circumflex> <a>                       : "â"   acircumflex
+<dead_circumflex> <A>                       : "Â"   Acircumflex
+<dead_circumflex> <e>                       : "ê"   ecircumflex
+<dead_circumflex> <E>                       : "Ê"   Ecircumflex
+<dead_circumflex> <i>                       : "î"   icircumflex
+<dead_circumflex> <I>                       : "Î"   Icircumflex
+<dead_circumflex> <o>                       : "ô"   ocircumflex
+<dead_circumflex> <O>                       : "Ô"   Ocircumflex
+<dead_circumflex> <u>                       : "û"   ucircumflex
+<dead_circumflex> <U>                       : "Û"   Ucircumflex
+<dead_diaeresis> <a>                        : "ä"   adiaeresis
+<dead_diaeresis> <A>                        : "Ä"   Adiaeresis
+<dead_diaeresis> <e>                        : "ë"   ediaeresis
+<dead_diaeresis> <E>                        : "Ë"   Ediaeresis
+<dead_diaeresis> <i>                        : "ï"   idiaeresis
+<dead_diaeresis> <I>                        : "Ï"   Idiaeresis
+<dead_diaeresis> <o>                        : "ö"   odiaeresis
+<dead_diaeresis> <O>                        : "Ö"   Odiaeresis
+<dead_diaeresis> <u>                        : "ü"   udiaeresis
+<dead_diaeresis> <U>                        : "Ü"   Udiaeresis
+
+
+# Ligatures
+<Multi_key> <o> <e>                         : "œ"   oe
+<Multi_key> <O> <E>                         : "Œ"   OE
+<Multi_key> <a> <e>                         : "æ"   ae
+<Multi_key> <A> <E>                         : "Æ"   AE
+
+# Quotation marks
+<Multi_key> <less> <less>                   : "«"   guillemotleft
+<Multi_key> <greater> <greater>             : "»"   guillemotright
+<Multi_key> <less> <apostrophe>             : "‘"   U2018 # LEFT SINGLE QUOTATION MARK
+<Multi_key> <apostrophe> <less>             : "‘"   U2018 # LEFT SINGLE QUOTATION MARK
+<Multi_key> <greater> <apostrophe>          : "’"   U2019 # RIGHT SINGLE QUOTATION MARK
+<Multi_key> <apostrophe> <greater>          : "’"   U2019 # RIGHT SINGLE QUOTATION MARK
+<Multi_key> <comma> <apostrophe>            : "‚"   U201a # SINGLE LOW-9 QUOTATION MARK
+<Multi_key> <apostrophe> <comma>            : "‚"   U201a # SINGLE LOW-9 QUOTATION MARK
+<Multi_key> <less> <quotedbl>               : "“"   U201c # LEFT DOUBLE QUOTATION MARK
+<Multi_key> <quotedbl> <less>               : "“"   U201c # LEFT DOUBLE QUOTATION MARK
+<Multi_key> <greater> <quotedbl>            : "”"   U201d # RIGHT DOUBLE QUOTATION MARK
+<Multi_key> <quotedbl> <greater>            : "”"   U201d # RIGHT DOUBLE QUOTATION MARK
+<Multi_key> <comma> <quotedbl>              : "„"   U201e # DOUBLE LOW-9 QUOTATION MARK
+<Multi_key> <quotedbl> <comma>              : "„"   U201e # DOUBLE LOW-9 QUOTATION MARK
+
+# Math symbols
+<Multi_key> <s> <r>                         : "√"   U221a       # Square root
+<Multi_key> <c> <r>                         : "∛"   U221b       # Cube root
+<Multi_key> <o> <o>                         : "∞"   U221e       # Infinity
+<Multi_key> <s> <u> <m>                     : "∑"   U2211       # Sum
+<Multi_key> <i> <n> <t>                     : "∫"   U222B       # Integral
+<Multi_key> <d> <i> <n> <t>                 : "∬"   U222C       # Double integral
+<Multi_key> <t> <i> <n> <t>                 : "∭"   U222D       # triple integral
+<Multi_key> <KP_Add> <KP_Subtract>          : "±"   plusminus
+<Multi_key> <KP_Subtract> <KP_Add>          : "±"   plusminus
+<Multi_key> <colon> <KP_Subtract>           : "÷"   division
+<Multi_key> <KP_Subtract> <colon>           : "÷"   division
+<Multi_key> <asciitilde> <equal>            : "≈"   U2248       # Almost equal to
+<Multi_key> <equal> <asciitilde>            : "≈"   U2248
+<Multi_key> <slash> <equal>                 : "≠"   U2260       # Not equal to
+<Multi_key> <equal> <slash>                 : "≠"   U2260
+<Multi_key> <less> <equal>                  : "≤"   U2264
+<Multi_key> <equal> <less>                  : "≤"   U2264
+<Multi_key> <greater> <equal>               : "≥"   U2265
+<Multi_key> <equal> <greater>               : "≥"   U2265
+<Multi_key> <percent> <o>                   : "‰"   U2030 
+
+
+# Superscripts
+<dead_circumflex> <0>                       : "⁰"   U2070
+<dead_circumflex> <KP_0>                    : "⁰"   U2070
+<dead_circumflex> <1>                       : "¹"   onesuperior
+<dead_circumflex> <KP_1>                    : "¹"   onesuperior
+<dead_circumflex> <2>                       : "²"   twosuperior
+<dead_circumflex> <KP_2>                    : "²"   twosuperior
+<dead_circumflex> <3>                       : "³"   threesuperior
+<dead_circumflex> <KP_3>                    : "³"   threesuperior
+<dead_circumflex> <4>                       : "⁴"   U2074
+<dead_circumflex> <KP_4>                    : "⁴"   U2074
+<dead_circumflex> <5>                       : "⁵"   U2075
+<dead_circumflex> <KP_5>                    : "⁵"   U2075
+<dead_circumflex> <6>                       : "⁶"   U2076
+<dead_circumflex> <KP_6>                    : "⁶"   U2076
+<dead_circumflex> <7>                       : "⁷"   U2077
+<dead_circumflex> <KP_7>                    : "⁷"   U2077
+<dead_circumflex> <8>                       : "⁸"   U2078
+<dead_circumflex> <KP_8>                    : "⁸"   U2078
+<dead_circumflex> <9>                       : "⁹"   U2079
+<dead_circumflex> <KP_9>                    : "⁹"   U2079
+<dead_circumflex> <plus>                    : "⁺"   U207A
+<dead_circumflex> <KP_Add>                  : "⁺"   U207A
+
+# Fractions
+<Multi_key> <1> <2>                         : "½"   onehalf
+<Multi_key> <1> <3>                         : "⅓"   U2153
+<Multi_key> <2> <3>                         : "⅔"   U2154
+<Multi_key> <1> <4>                         : "¼"   onequarter
+<Multi_key> <3> <4>                         : "¾"   threequarters
+<Multi_key> <1> <9>                         : "⅑"   U2151
+<Multi_key> <1> <1> <0>                     : "⅒"   U2152
+<Multi_key> <1> <5>                         : "⅕"   U2155
+<Multi_key> <2> <5>                         : "⅖"   U2156
+<Multi_key> <3> <5>                         : "⅗"   U2157
+<Multi_key> <4> <5>                         : "⅘"   U2158
+<Multi_key> <1> <6>                         : "⅙"   U2159
+<Multi_key> <5> <6>                         : "⅚"   U215A
+<Multi_key> <1> <7>                         : "⅐"   U2150
+<Multi_key> <1> <8>                         : "⅛"   U215B
+<Multi_key> <3> <8>                         : "⅜"   U215C
+<Multi_key> <5> <8>                         : "⅝"   U215D
+<Multi_key> <7> <8>                         : "⅞"   U215E
+<Multi_key> <0> <3>                         : "↉"   U2189
+
+# Units, symbols
+<Multi_key> <o> <m>                         : "Ω"   U2126       # Ohm
+<Multi_key> <m> <u>                         : "µ"   U00B5       # Micro
+<Multi_key> <a> <o>                         : "Å"   U212B       # Ångström
+<Multi_key> <d> <g>                         : "°"   degree
+<Multi_key> <p> <i>                         : "π"   U03C0       # Pi
+<Multi_key> <h> <h>                         : "ℎ"   U210E       # h (Planck's constant)
+<Multi_key> <h> <b>                         : "ℏ"   U210F       # h-bar (ℎ/2π)
+<Multi_key> <percent> <o>                   : "‰"   U2030       # Per mille
+
+# Currencies
+<Multi_key> <C> <E>                         : "₠"   U20a0
+<Multi_key> <C> <equal>                     : "€"   EuroSign
+<Multi_key> <equal> <C>                     : "€"   EuroSign
+<Multi_key> <c> <equal>                     : "€"   EuroSign
+<Multi_key> <equal> <c>                     : "€"   EuroSign
+<Multi_key> <c> <slash>                     : "¢"   cent
+<Multi_key> <slash> <c>                     : "¢"   cent
+<Multi_key> <L> <minus>                     : "£"   sterling
+<Multi_key> <l> <minus>                     : "£"   sterling
+<Multi_key> <minus> <L>                     : "£"   sterling
+<Multi_key> <minus> <l>                     : "£"   sterling
+
+# Misc
+<Multi_key> <c> <c> <c> <p>                 : "☭"   U262D
+<Multi_key> <C> <C> <C> <P>                 : "☭"   U262D
+<Multi_key> <colon> <parenright>            : "☺"   U263A
+<Multi_key> <colon> <parenleft>             : "☹"   U2639
+<Multi_key> <t> <m>                         : "™"   U2122       # Trade mark
+<Multi_key> <o> <c>                         : "©"   copyright   # Copyright
+<Multi_key> <o> <C>                         : "©"   copyright
+<Multi_key> <O> <c>                         : "©"   copyright
+<Multi_key> <O> <C>                         : "©"   copyright
+<Multi_key> <C> <o>                         : "©"   copyright
+<Multi_key> <C> <O>                         : "©"   copyright
+<Multi_key> <o> <r>                         : "®"   registered  # Registered
+<Multi_key> <o> <R>                         : "®"   registered
+<Multi_key> <O> <r>                         : "®"   registered
+<Multi_key> <O> <R>                         : "®"   registered
+<Multi_key> <R> <O>                         : "®"   registered
+
+# Greek letters
+<Multi_key> <g> <A>                         : "Α"   U0391       # Capital ALPHA
+<Multi_key> <g> <a>                         : "α"   U03B1       # Small ALPHA
+<Multi_key> <g> <B>                         : "Β"   U0392       # Capital BETA
+<Multi_key> <g> <b>                         : "β"   U03B2       # Small BETA
+<Multi_key> <g> <D>                         : "Δ"   U0394       # Capital DELTA
+<Multi_key> <g> <d>                         : "δ"   U03B4       # Small DELTA
+<Multi_key> <g> <E>                         : "Ε"   U0395       # Capital EPSILON
+<Multi_key> <g> <e>                         : "ε"   U03B5       # Small EPSILON
+<Multi_key> <g> <F>                         : "Φ"   U03A6       # Capital PHI
+<Multi_key> <g> <f>                         : "φ"   U03C6       # Small PHI
+<Multi_key> <g> <G>                         : "Γ"   U0393       # Capital GAMMA
+<Multi_key> <g> <g>                         : "γ"   U03B3       # Small GAMMA
+<Multi_key> <g> <H>                         : "Η"   U0397       # Capital ETA
+<Multi_key> <g> <h>                         : "η"   U03B7       # Small ETA
+<Multi_key> <g> <I>                         : "Ι"   U0399       # Capital IOTA
+<Multi_key> <g> <i>                         : "ι"   U03B9       # Small IOTA
+<Multi_key> <g> <J>                         : "Θ"   U0398       # Capital THETA
+<Multi_key> <g> <j>                         : "θ"   U03B8       # Small THETA
+<Multi_key> <g> <K>                         : "Κ"   U039A       # Capital KAPPA
+<Multi_key> <g> <k>                         : "κ"   U03BA       # Small KAPPA
+<Multi_key> <g> <L>                         : "Λ"   U039B       # Capital LAMDA
+<Multi_key> <g> <l>                         : "λ"   U03BB       # Small LAMDA
+<Multi_key> <g> <M>                         : "Μ"   U039C       # Capital MU
+<Multi_key> <g> <m>                         : "μ"   U03BC       # Small MU
+<Multi_key> <g> <N>                         : "Ν"   U039D       # Capital NU
+<Multi_key> <g> <n>                         : "ν"   U03BD       # Small NU
+<Multi_key> <g> <O>                         : "Ο"   U039F       # Capital OMICRON
+<Multi_key> <g> <o>                         : "ο"   U03BF       # Small OMICRON
+<Multi_key> <g> <P>                         : "Π"   U03A0       # Capital PI
+<Multi_key> <g> <p>                         : "π"   U03C0       # Small PI
+<Multi_key> <g> <Q>                         : "Χ"   U03A7       # Capital CHI
+<Multi_key> <g> <q>                         : "χ"   U03C7       # Small CHI
+<Multi_key> <g> <R>                         : "Ρ"   U03A1       # Capital RHO
+<Multi_key> <g> <r>                         : "ρ"   U03C1       # Small RHO
+<Multi_key> <g> <S>                         : "Σ"   U03A3       # Capital SIGMA
+<Multi_key> <g> <s>                         : "σ"   U03C3       # Small SIGMA
+<Multi_key> <g> <T>                         : "Τ"   U03A4       # Capital TAU
+<Multi_key> <g> <t>                         : "τ"   U03C4       # Small TAU
+<Multi_key> <g> <U>                         : "Υ"   U03A5       # Capital UPSILON
+<Multi_key> <g> <u>                         : "υ"   U03C5       # Small UPSILON
+<Multi_key> <g> <W>                         : "Ω"   U03A9       # Capital OMEGA
+<Multi_key> <g> <w>                         : "ω"   U03C9       # Small OMEGA
+<Multi_key> <g> <X>                         : "Ξ"   U039E       # Capital XI
+<Multi_key> <g> <x>                         : "ξ"   U03BE       # Small XI
+<Multi_key> <g> <Y>                         : "Ψ"   U03A8       # Capital PSI
+<Multi_key> <g> <y>                         : "ψ"   U03C8       # Small PSI
+<Multi_key> <g> <Z>                         : "Ζ"   U0396       # Capital ZETA
+<Multi_key> <g> <z>                         : "ζ"   U03B6       # Small ZETA
