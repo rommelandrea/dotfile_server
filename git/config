@@ -1,6 +1,6 @@
 [user]
     name = Emmanuel Rouat
-	email = None
+    email = None
 
 [core]
     editor = vi
