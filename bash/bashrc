@@ -598,7 +598,8 @@ alias lu='ls -ltur'     # sort by/show access time, most recent last
 alias ll='ls -lv --group-directories-first'
 alias lll='ll | less'   # pipe through 'less'
 alias lr='ll -R'        # recursive ls
-alias la='ll -A'        # show hidden files
+alias la='ll -A'        # show all files
+alias l.='ll -d .*'     # show dotfiles only
 
 alias tree='tree -Csuh' # nice alternative to 'recursive ls'
 
