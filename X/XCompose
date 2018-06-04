@@ -1,5 +1,8 @@
 #include "%L"   # import the default Compose file for your locale
 
+# Based in part on 'AllChars for Windows' configuration
+# (https://sourceforge.net/projects/allchars/)
+
 # Accents
 <dead_circumflex> <a>                       : "â"   acircumflex
 <dead_circumflex> <A>                       : "Â"   Acircumflex
@@ -65,7 +68,7 @@
 <Multi_key> <equal> <less>                  : "≤"   U2264
 <Multi_key> <greater> <equal>               : "≥"   U2265
 <Multi_key> <equal> <greater>               : "≥"   U2265
-<Multi_key> <percent> <o>                   : "‰"   U2030 
+<Multi_key> <percent> <o>                   : "‰"   U2030
 
 
 # Superscripts
