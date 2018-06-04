@@ -177,6 +177,8 @@ shopt -u mailwarn
 unset MAILCHECK
 
 export TIMEFORMAT=$'\nreal %3R\tuser %3U\tsys %3S\tpcpu %P\n'
+
+# Bash history settings
 export HISTTIMEFORMAT=$(echoc ${Capri} "[%F %T] ")
 export HISTIGNORE='&:?:??:exit:top:* --help:[h ]*'
 export HISTCONTROL=erasedups
@@ -678,11 +680,14 @@ function kate() { command kate "$@" & }
 # File & strings related functions:
 #-------------------------------------------------------------
 
-
 # Turn a string to lowercase
 function tolower() { echo ${@,,} ; }
 
-# Handy wrapper to view/edit files with appropriate viewer
+# Remove duplicate lines in a file (without sorting)
+# (https://www.quora.com/How-does-this-simple-awk-command-remove-duplicates)
+function removeduplines() { awk '!seen[$0]++' < "$1"; }
+
+# Handy wrapper to view/edit files with appropriate viewer/editor
 function te()
 {
     for file; do
@@ -800,7 +805,7 @@ function extract()
             *.zip)       unzip "${file}"        ;;
             *.z)         gunzip -v "${file}"    ;;
             *.7z)        7z x "${file}"         ;;
-            *)           echo "'${file}' cannot be extracted via >extract<" ;;
+            *)           echo "'${file}' is not a valid format"; return 1 ;;
         esac
     done
 }
