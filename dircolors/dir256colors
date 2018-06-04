@@ -194,16 +194,16 @@ STICKY_OTHER_WRITABLE 48;5;235;38;5;139;3
 *.sh            38;5;208
 *.va            38;5;208
 
-# Config files (lavender)
-*rc             38;5;189
-*mycsh          38;5;189
-*mytcsh         38;5;189
-.conf           38;5;189
-.cfg            38;5;189
-.cdsenv         38;5;189
-.cdsinit        38;5;189
-.cdslocal       38;5;189
-.cdsplotinit    38;5;189
-.sw             38;5;189
-.ucdprod        38;5;189
+# Config files (turquoise)
+*rc             38;5;44
+*mycsh          38;5;44
+*mytcsh         38;5;44
+.conf           38;5;44
+.cfg            38;5;44
+.cdsenv         38;5;44
+.cdsinit        38;5;44
+.cdslocal       38;5;44
+.cdsplotinit    38;5;44
+.sw             38;5;44
+.ucdprod        38;5;44
 
