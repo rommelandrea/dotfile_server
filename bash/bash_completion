@@ -1,10 +1,10 @@
 #===============================================================
+# kate: syntax bash
 #
 # PERSONNAL BASH COMPLETION for bash-4 (or later)
 #
 # This file is read (normally) by interactive shells only.
 #
-# kate: syntax bash
 #===============================================================
 
 

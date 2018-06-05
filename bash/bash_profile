@@ -1,4 +1,5 @@
 #=========================================================================
+# kate: syntax bash
 #
 # PERSONNAL $HOME/.bash_profile for bash-4
 #
@@ -53,18 +54,10 @@ export QT_IM_MODULE="xim"
 #--------------------------------------------------------------
 
 case "$-" in
-
     *i*)    # interactive shell
-	[ -f ~/.bashrc ] && . ~/.bashrc ;;
-
+        [ -f ~/.bashrc ] && . ~/.bashrc ;;
     *)      # non-interactive shell
-                  ;;
+                ;;
 esac
 
 
-
-
-# Local Variables:
-# mode:shell-script
-# sh-shell:bash
-# End:
