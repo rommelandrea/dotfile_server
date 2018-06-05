@@ -757,18 +757,16 @@ function sanitize()
     echo "Make directories access rights sane..."
     chmod -R u=rwX,g=rX,o= ${PWD}
     echo "Lowercasing/standardising all file extensions..."
-    for f in $(find . -name '*.*')
-    do
+    for f in $(find . -name '*.*'); do
         name="${f%.*}"
-        ext="${f##*.}" # now, test if there a uppcase chars in ext:
-        test=$(echo $ext | grep [A-Z])
-        if [ "$?" = "0" ]; then   # Uppercase letters found.
-            ext=$(echo "${ext}" | tr [:upper:] [:lower:])
-            case "${ext}" in
-                jpeg)   ext="jpg"       ;;
-                htm)    ext="html"      ;;
-                tgz)    ext="tar.gz"    ;;
-            esac
+        ext=$(lowercase ${f##*.})
+        case ${ext} in
+            jpeg)   ext="jpg"       ;;
+            mpeg)   ext="mpg"       ;;
+            htm)    ext="html"      ;;
+            tgz)    ext="tar.gz"    ;;
+        esac
+        if  [ "${f##*.}" != "${ext}" ]; then
             mv -v ${f} ${name}.${ext}
         fi
     done
