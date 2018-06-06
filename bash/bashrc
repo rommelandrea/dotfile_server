@@ -195,6 +195,9 @@ export HISTFILE=~/.bash_eternal_history
 #   https://github.com/Bash-it/bash-it
 # http://stackoverflow.com/questions/22706538/getting-a-dynamic-bash-prompt-ps1-right
 #   (and many others...)
+# This prompt was designed using the Inconsolata font 
+# (especially for the git  prompt). Other monospaced fonts might 
+# not look as good.
 #-------------------------------------------------------------
 #   Format: (TIME)(USER@HOST)(PWD)(GIT)(jobs)>
 #-------------------------------------------------------------
