@@ -690,33 +690,6 @@ function tolower() { echo ${@,,} ; }
 # (https://www.quora.com/How-does-this-simple-awk-command-remove-duplicates)
 function removeduplines() { awk '!seen[$0]++' < "$1"; }
 
-# Handy wrapper to view/edit files with appropriate viewer/editor
-function te()
-{
-    for file; do
-        case $(tolower ${file}) in
-            *.od*)      soffice "${file}"       ;;
-            *.doc*)     soffice "${file}"       ;;
-            *.ppt*)     soffice "${file}"       ;;
-            *.xls*)     soffice "${file}"       ;;
-            *.pdf)      okular "${file}"        ;;
-            *.ps)       okular "${file}"        ;;
-            *.ps.gz)    okular "${file}"        ;;
-            *.ps.bz2)   okular "${file}"        ;;
-            *.bmp)      gwenview "${file}"      ;;
-            *.gif)      gwenview "${file}"      ;;
-            *.jp*g)     gwenview "${file}"      ;;
-            *.png)      gwenview "${file}"      ;;
-            *.tiff)     gwenview "${file}"      ;;
-            *.bz2)      bzmore "${file}"        ;;
-            *.gz)       zmore "${file}"         ;;
-            *.xz)       xzmore "${file}"        ;;
-            *.z)        zmore "${file}"         ;;
-            *)          kate "${file}"          ;;
-        esac
-    done
-}
-
 # Find a file with a pattern in name:
 function ff() { find . -type f -iname '*'"$*"'*' ; }
 
@@ -747,9 +720,36 @@ Usage: fstr [-i] \"pattern\" [\"filename pattern\"] "
         xargs -0 grep --color=always -sn ${mycase} "$1" 2>&- | sort
 }
 
+# Handy wrapper to view/edit files with appropriate viewer/editor
+function te()
+{
+    for file; do
+        case $(tolower ${file}) in
+            *.od*)      soffice "${file}"       ;;
+            *.doc*)     soffice "${file}"       ;;
+            *.ppt*)     soffice "${file}"       ;;
+            *.xls*)     soffice "${file}"       ;;
+            *.pdf)      okular "${file}"        ;;
+            *.ps)       okular "${file}"        ;;
+            *.ps.gz)    okular "${file}"        ;;
+            *.ps.bz2)   okular "${file}"        ;;
+            *.bmp)      gwenview "${file}"      ;;
+            *.gif)      gwenview "${file}"      ;;
+            *.jp*g)     gwenview "${file}"      ;;
+            *.png)      gwenview "${file}"      ;;
+            *.tiff)     gwenview "${file}"      ;;
+            *.bz2)      bzmore "${file}"        ;;
+            *.gz)       zmore "${file}"         ;;
+            *.xz)       xzmore "${file}"        ;;
+            *.z)        zmore "${file}"         ;;
+            *)          kate "${file}"          ;;
+        esac
+    done
+}
+
+
 # Make directories and files access rights sane
 function saneaccess() { chmod -R u=rwX,g=rX,o= "$@" ;}
-
 
 # Sanitize directory tree
 # -> make directories and files access rights correct
@@ -787,7 +787,7 @@ function ds()
     fi
 }
 
-# Handy wrapper to extract compressed files
+# Handy wrapper to extract archives/compressed files
 function extract()
 {
     for file; do
@@ -811,6 +811,22 @@ function extract()
     done
 }
 
+# Pull a single file out of archive
+function extractfile()
+{
+    if [ $# -ne 2 ]; then
+        echo "Usage: extractfile [file] [archive]"
+        return 1
+    fi
+    case $(lowercase ${2}) in
+        *.tar)              tar xvf "${2}" "${1}" ;;
+        *.tbz2|*.tar.bz2)   tar xvf "${2}" "${1}" ;;
+        *.tgz|*.tar.gz)     tar xvf "${2}" "${1}" ;;
+        *.txz|*.tar.xz)     tar xvf "${2}" "${1}" ;;
+        *.zip)              unzip "${2}" "${1}" ;;
+        *)                  echo "'${2}' is not a valid archive"; return 1 ;;
+    esac
+}
 
 function tomp4()
 {
