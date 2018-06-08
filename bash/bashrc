@@ -195,9 +195,8 @@ export HISTFILE=~/.bash_eternal_history
 #   https://github.com/Bash-it/bash-it
 # http://stackoverflow.com/questions/22706538/getting-a-dynamic-bash-prompt-ps1-right
 #   (and many others...)
-# This prompt was designed using the Inconsolata font 
-# (especially for the git  prompt). Other monospaced fonts might 
-# not look as good.
+# This prompt was designed using the Inconsolata font.
+# Other monospaced fonts might not look as good (especially the git prompt).
 #-------------------------------------------------------------
 #   Format: (TIME)(USER@HOST)(PWD)(GIT)(jobs)>
 #-------------------------------------------------------------
@@ -266,7 +265,8 @@ export HISTFILE=~/.bash_eternal_history
 
 #
 
-# Save the last command exit status, and write to history file
+# Save the last command exit status, and write to history file only
+# if last command is succesful
 PROMPT_COMMAND='_status_=$?; if [ ${_status_} -eq 0 ]; then history -a; fi'
 
 
@@ -667,6 +667,7 @@ function make()
     nice make $* 2>&1 | colormake.pl $LINES $COLUMNS
 }
 
+# Show weather in console
 alias weather='curl wttr.in/grenoble'
 
 #-------------------------------------------------------------
@@ -758,7 +759,7 @@ function saneaccess() { chmod -R u=rwX,g=rX,o= "$@" ;}
 function sanitize()
 {
     echo "Make directories access rights sane..."
-    chmod -R u=rwX,g=rX,o= ${PWD}
+    saneaccess ${PWD}
     echo "Lowercasing/standardising all file extensions..."
     for f in $(find . -name '*.*'); do
         name="${f%.*}"
@@ -1082,7 +1083,6 @@ if [[ $(whoami) = "root" ]]; then
     alias up="ifconfig eth0 up && logs /var/log/syslog"
     alias down="ifconfig eth0 down"
 
-    alias detach="udisks --detach /dev/sdb"
 
     function logs ()
     {
