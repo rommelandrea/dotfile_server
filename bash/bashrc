@@ -335,14 +335,20 @@ function _pwd_prompt_()
     # Check if current directory is 'writable'
     [ -w "${PWD}" ] && local open="(" close=")" || local open="[" close="]"
 
-    # The following loop will trim 'pwd' prompt to less than 'pwdlength' chars (default 20),
+    # The following loop will trim 'pwd' prompt to less than 'pwdlength' chars (default 24),
     # but keeps the leaf names intact (the last one regardless of its length)
-    local dirprompt=${PWD/${HOME}/'~'} pwdlength=${1:-20} prefix
-    while [ ${#dirprompt} -gt ${pwdlength} ] && [[ ${dirprompt} == */* ]]; do
-        prefix="/../"
+    local dirprompt=${PWD/${HOME}/''} pwdlength=${1:-24} prefix
+    if [ ${#dirprompt} -gt ${pwdlength} ]; then
         dirprompt=${dirprompt#*/}
-    done
-    [[ ${PWD} == ${HOME}* ]] && [ ${prefix} ] && prefix="~/../"
+        while [ ${#dirprompt} -gt ${pwdlength} ] && [[ ${dirprompt} == */* ]]; do
+            prefix="/.."
+            dirprompt=${dirprompt#*/}
+        done
+        [ -n ${prefix} ] && dirprompt="/${dirprompt}"
+    fi
+    if [[ ${PWD} == ${HOME}* ]]; then
+        [ ${prefix} ] && prefix="~/.." || prefix="~"
+    fi
 
     # Check current directory size and/or existence
     if [ -d "${PWD}" ]; then
