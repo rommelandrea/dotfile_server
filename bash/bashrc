@@ -1,5 +1,4 @@
 #===============================================================
-# kate: syntax bash
 #
 # Users .bashrc file for bash-4 (or later)
 #
@@ -1163,4 +1162,6 @@ fi
 # Now finaly - greetings!
 greetings
 
+
+# kate: syntax bash
 
