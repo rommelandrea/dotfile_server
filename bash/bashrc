@@ -592,8 +592,8 @@ alias nice='nice '  # allows expansion of aliases after 'nice'
 # The 'ls' family (this assumes you use a recent GNU ls)
 #-------------------------------------------------------------
 
-if [ -f ~/.dircolors ]; then
-    eval $(dircolors ~/.dircolors)
+if [ -r ~/.dircolors ]; then
+    eval $(dircolors -b ~/.dircolors)
 fi
 
 
