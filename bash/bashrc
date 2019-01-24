@@ -146,7 +146,6 @@ Reset=$(tput sgr0)
 function echoc() { echo -en "\x01${1}\x02${2:-}\x01${Reset}\x02" ; }
 
 
-
 #===============================================================
 # SHELL SETTINGS
 #===============================================================
@@ -690,7 +689,7 @@ function kate() { command kate "$@" & }
 #-------------------------------------------------------------
 
 # Turn a string to lowercase
-function tolower() { echo ${@,,} ; }
+function lowercase() { echo ${@,,} ; }
 
 # Remove duplicate lines in a file (without sorting)
 # (https://www.quora.com/How-does-this-simple-awk-command-remove-duplicates)
@@ -729,8 +728,9 @@ Usage: fstr [-i] \"pattern\" [\"filename pattern\"] "
 # Handy wrapper to view/edit files with appropriate viewer/editor
 function te()
 {
+    local file
     for file; do
-        case $(tolower ${file}) in
+        case $(lowercase ${file}) in
             *.od*)      soffice "${file}"       ;;
             *.doc*)     soffice "${file}"       ;;
             *.ppt*)     soffice "${file}"       ;;
@@ -764,21 +764,26 @@ function saneaccess() { chmod -R u=rwX,g=rX,o= "$@" ;}
 function sanitize()
 {
     echo "Make directories access rights sane..."
-    saneaccess ${PWD}
+    chmod -R u=rwX,g=rX,o= ${PWD}
     echo "Lowercasing/standardising all file extensions..."
-    for f in $(find . -name '*.*'); do
-        name="${f%.*}"
-        ext=$(lowercase ${f##*.})
+    local file OIFS="${IFS}"
+    IFS=$'\n'
+    for file in $(find . -name '*.*' -print); do
+        local name="${file%.*}"
+        local ext=$(lowercase ${file##*.})
         case ${ext} in
             jpeg)   ext="jpg"       ;;
             mpeg)   ext="mpg"       ;;
             htm)    ext="html"      ;;
             tgz)    ext="tar.gz"    ;;
+            tbz2)   ext="tar.bz2"   ;;
+            txz)    ext="tar.xz"    ;;
         esac
-        if  [ "${f##*.}" != "${ext}" ]; then
-            mv -v ${f} ${name}.${ext}
+        if  [ "${file##*.}" != "${ext}" ]; then
+            \mv -v "${file}" ${name}.${ext}
         fi
     done
+    IFS="${OIFS}"
 }
 
 
@@ -796,32 +801,36 @@ function ds()
 # Handy wrapper to extract archives/compressed files
 function extract()
 {
+    if [ $# -lt 1 ]; then
+        echo "Usage: extract [archives]"
+        echo "Will extract archive file (tar.gz, zip etc) automatically"
+        return 1
+    fi
+    local file
     for file; do
-        case $(tolower ${file}) in
-            *.tar)       tar xvf "${file}"      ;;
-            *.tgz)       tar xvf "${file}"      ;;
-            *.tar.gz)    tar xvf "${file}"      ;;
-            *.tbz2)      tar xvf "${file}"      ;;
-            *.tar.bz2)   tar xvf "${file}"      ;;
-            *.txz)       tar xvf "${file}"      ;;
-            *.tar.xz)    tar xvf "${file}"      ;;
-            *.gz)        gunzip -v "${file}"    ;;
-            *.bz2)       bunzip2 -v "${file}"   ;;
-            *.rar)       unrar x "${file}"      ;;
-            *.xz)        unxz -v "${file}"      ;;
-            *.zip)       unzip "${file}"        ;;
-            *.z)         gunzip -v "${file}"    ;;
-            *.7z)        7z x "${file}"         ;;
-            *)           echo "'${file}' is not a valid format"; return 1 ;;
+        case $(lowercase ${file}) in
+            *.tar)              tar xvf "${file}"       ;;
+            *.tbz2|*.tar.bz2)   tar xvf "${file}"       ;;
+            *.tgz|*.tar.gz)     tar xvf "${file}"       ;;
+            *.txz|*.tar.xz)     tar xvf "${file}"       ;;
+            *.rar)              unrar x "${file}"       ;;
+            *.bz2)              bunzip2 -v "${file}"    ;;
+            *.z|*.gz)           gunzip -v "${file}"     ;;
+            *.xz)               unxz -v "${file}"       ;;
+            *.zip)              unzip "${file}"         ;;
+            *.7z)               7z x "${file}"          ;;
+            *)                  echo "'${file}' is not a valid format"; return 1 ;;
         esac
     done
 }
+
 
 # Pull a single file out of archive
 function extractfile()
 {
     if [ $# -ne 2 ]; then
-        echo "Usage: extractfile [file] [archive]"
+        echo "Usage:"
+        echo "extractfile [file] [archive]"
         return 1
     fi
     case $(lowercase ${2}) in
@@ -829,7 +838,7 @@ function extractfile()
         *.tbz2|*.tar.bz2)   tar xvf "${2}" "${1}" ;;
         *.tgz|*.tar.gz)     tar xvf "${2}" "${1}" ;;
         *.txz|*.tar.xz)     tar xvf "${2}" "${1}" ;;
-        *.zip)              unzip "${2}" "${1}" ;;
+        *.zip)              unzip   "${2}" "${1}" ;;
         *)                  echo "'${2}' is not a valid archive"; return 1 ;;
     esac
 }
