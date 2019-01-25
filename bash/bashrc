@@ -12,12 +12,12 @@
 [ -z "$PS1" ] && return
 
 # Function to run upon exit of shell (cleanup, etc)
-function _user_exit_()
+function _shell_exit_()
 {
     \rm -rf ~/.pulse-cookie
     clear
 }
-trap _user_exit_ 0
+trap _shell_exit_ 0
 
 
 #-----------------------------------------------------------
@@ -151,7 +151,8 @@ function echoc() { echo -en "\x01${1}\x02${2:-}\x01${Reset}\x02" ; }
 #===============================================================
 
 # Useful for debuging
-alias debug='set -o nounset; set -o xtrace'
+#alias debug='set -o nounset; set -o xtrace'
+function debug() { set -o nounset; set -o xtrace; $* ; set +o nounset; set +o xtrace; }
 
 ulimit -S -c 0      # Don't want any coredumps
 set -o notify
@@ -163,6 +164,8 @@ shopt -s cdspell
 shopt -s cdable_vars
 shopt -s checkhash
 shopt -s checkwinsize
+shopt -s direxpand
+shopt -s dirspell
 shopt -s sourcepath
 shopt -s no_empty_cmd_completion
 shopt -s cmdhist
@@ -177,10 +180,13 @@ unset MAILCHECK
 export TIMEFORMAT=$'\nreal %3R\tuser %3U\tsys %3S\tpcpu %P\n'
 
 # Bash history settings
+export HISTSIZE=1000
+export HISTFILESIZE=-1   # allows infinite history file
 export HISTTIMEFORMAT=$(echoc ${Capri} "[%F %T] ")
 export HISTIGNORE='&:?:??:exit:top:* --help:[h ]*'
 export HISTCONTROL=erasedups
 export HISTFILE=~/.bash_eternal_history
+
 
 #===============================================================
 # SHELL PROMPT
@@ -263,9 +269,8 @@ export HISTFILE=~/.bash_eternal_history
 
 #
 
-# Save the last command exit status, and write to history file only
-# if last command is succesful
-PROMPT_COMMAND='_status_=$?; if [ ${_status_} -eq 0 ]; then history -a; fi'
+# Save the last command exit status, and write to history file
+PROMPT_COMMAND='_exit_status_=$?; history -a'
 
 
 # Returns system load as percentage (i.e '40' instead of '0.40')
@@ -453,7 +458,7 @@ function _job_prompt_()
 function _close_prompt_()
 {
     # Check last command exit status
-    if [ ${_status_} -eq 0 ]; then
+    if [ ${_exit_status_} -eq 0 ]; then
         echoc ${LBlue} "> "
     else
         echoc ${Crimson} "> "
@@ -605,12 +610,14 @@ alias lu='ls -ltur'     # sort by/show access time, most recent last
 
 # The ubiquitous 'll' command: directories first, with alphanumeric sorting
 alias ll='ls -lv --group-directories-first'
-alias lll='ll | less'   # pipe through 'less'
+alias lh='ls -lv --group-directories-first --author'
 alias lr='ll -R'        # recursive ls
 alias la='ll -A'        # show all files
+alias lm='ll | less'    # pipe through 'less'
 alias l.='ll -d .*'     # show dotfiles only
 
 alias tree='tree -Csuh' # nice alternative to 'recursive ls'
+alias dirtree='tree -d'
 
 # Spelling typos
 alias xs='cd'
@@ -646,6 +653,15 @@ export LESS_TERMCAP_ZN=$(tput ssubm)
 export LESS_TERMCAP_ZV=$(tput rsubm)
 export LESS_TERMCAP_ZO=$(tput ssupm)
 export LESS_TERMCAP_ZW=$(tput rsupm)
+
+function colorless()    # use vim to create a colored less
+{
+    if [ $# = 0 ]; then
+        vim --cmd 'let no_plugin_maps = 1' -c 'runtime! macros/less.vim' -
+    else
+        vim --cmd 'let no_plugin_maps = 1' -c 'runtime! macros/less.vim' "$@"
+    fi
+}
 
 
 #-------------------------------------------------------------
@@ -845,11 +861,12 @@ function extractfile()
 
 function tomp4()
 {
-    for f; do
-        local output="${f%.*}.mp4"
-        echo "Converting ${f} to ${output}..."
-        avconv -v error -i "${f}" -codec copy "${output}"
-        echo "Moving ${f} to $PWD..."
+    local file
+    for file; do
+        local output="${file%.*}.mp4"
+        echo "Converting ${file} to ${output}..."
+        avconv -v error -i "${file}" -codec copy "${output}"
+        echo "Moving ${file} to $PWD..."
         mv "${output}" .
     done
 }
@@ -863,6 +880,9 @@ function makezip() { zip -r "${1%%/}.zip" "$1" ; }
 
 # Find non-ascii (unicode?) caratcters in files
 function findnonascii() { LANG=C grep -n --color=always '[^ -~]\+' "$@"; }
+
+# Remove control codes from string
+alias cleanstr='sed -e "s/\x1b\[.\{1,5\}m//g"'
 
 # Center text in console with simple pipe like ( command | center )
 function left_align()
@@ -917,8 +937,8 @@ function curcol()
 # e.g.: lsof | getcolumn 0 | sort | uniq
 function getcolumn() { perl -ne '@cols = split; print "$cols['$1']\n"' ; }
 
-# Create box of '#' characters around given string
-function box() { t="$1xxxx";c=${2:-#}; echo ${t//?/$c}; echo "$c $1 $c"; echo ${t//?/$c}; }
+# Create box of '=' characters around given string
+function box() { t="$1xxxx";c=${2:-=}; echo ${t//?/$c}; echo "$c $1 $c"; echo ${t//?/$c}; }
 
 
 # Crypt/decrypt functions for one file
@@ -953,6 +973,7 @@ function killps()
 # Inspired by 'dfc' utility
 function dfstats()
 {
+    local fs
     for fs in "${@:-${PWD}}"; do # use PWD if no filesystem name is provided
         if [ ! -d "${fs}" ]; then echo ${fs} ": No such file or directory" ; continue ; fi
         local rawstats=( $(command df -P "${fs}" | awk 'END{ print $2,$3 }') )
