@@ -40,7 +40,7 @@ export EDITOR=kate
 export INPUTRC=$HOME/.inputrc
 
 export HISTSIZE=-1
-export HISTFILESIZE=-1
+export HISTFILESIZE=-1   # allows infinite history file
 
 export GTK_IM_MODULE="xim"
 export QT_IM_MODULE="xim"
