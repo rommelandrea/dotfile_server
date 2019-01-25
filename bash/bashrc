@@ -179,9 +179,7 @@ unset MAILCHECK
 
 export TIMEFORMAT=$'\nreal %3R\tuser %3U\tsys %3S\tpcpu %P\n'
 
-# Bash history settings
-export HISTSIZE=1000
-export HISTFILESIZE=-1   # allows infinite history file
+# Bash history settings - HISTSIZE and HISTFILESIZE are defined in .bash_profile
 export HISTTIMEFORMAT=$(echoc ${Capri} "[%F %T] ")
 export HISTIGNORE='&:?:??:exit:top:* --help:[h ]*'
 export HISTCONTROL=erasedups
