@@ -767,9 +767,11 @@ function te()
     done
 }
 
-
 # Make directories and files access rights sane
 function saneaccess() { chmod -R u=rwX,g=rX,o= "$@" ;}
+
+# Make directories and files access rights safe
+function safeaccess() { chmod -R u=rwX,g=,o= "$@" ;}
 
 # Sanitize directory tree
 # -> make directories and files access rights correct
@@ -778,7 +780,7 @@ function saneaccess() { chmod -R u=rwX,g=rX,o= "$@" ;}
 function sanitize()
 {
     echo "Make directories access rights sane..."
-    chmod -R u=rwX,g=rX,o= ${PWD}
+    saneaccess ${PWD}
     echo "Lowercasing/standardising all file extensions..."
     local file OIFS="${IFS}"
     IFS=$'\n'
@@ -794,7 +796,7 @@ function sanitize()
             txz)    ext="tar.xz"    ;;
         esac
         if  [ "${file##*.}" != "${ext}" ]; then
-            \mv -v "${file}" ${name}.${ext}
+            command mv -v "${file}" ${name}.${ext}
         fi
     done
     IFS="${OIFS}"
@@ -906,37 +908,37 @@ function right_align()
     echo "$lines" | while read l;do j=$(((s-$(echo -e "$l"|cleanstr|wc -c))));echo -e "$(while ((j-->0));do printf " ";done;)$l";done;
 }
 
-
 # Cursor position functions
 # (http://unix.stackexchange.com/questions/88296/get-vertical-cursor-position)
 function curpos()
 {
-    local CURPOS
-    read -sdR -p $'\E[6n' CURPOS
-    CURPOS=${CURPOS#*[} # Strip decoration characters <ESC>[
-    echo "${CURPOS}"    # Return position in "row;col" format
+    local curpos
+    read -sdR -p $'\E[6n' curpos
+    curpos=${curpos#*[} # Strip decoration characters <ESC>[
+    echo "${curpos}"    # Return position in "row;col" format
 }
 
 function currow()
 {
-    local ROW COL
-    IFS=';' read -sdR -p $'\E[6n' ROW COL
-    echo "${ROW#*[}"
+    local row col
+    IFS=';' read -sdR -p $'\E[6n' row col
+    echo "${row#*[}"
 }
 
 function curcol()
 {
-    local ROW COL
-    IFS=';' read -sdR -p $'\E[6n' ROW COL
-    echo "${COL}"
+    local row col
+    IFS=';' read -sdR -p $'\E[6n' row col
+    echo "${col}"
 }
+
 
 # Extract a particular column of space-separated output
 # e.g.: lsof | getcolumn 0 | sort | uniq
 function getcolumn() { perl -ne '@cols = split; print "$cols['$1']\n"' ; }
 
 # Create box of '=' characters around given string
-function box() { t="$1xxxx";c=${2:-=}; echo ${t//?/$c}; echo "$c $1 $c"; echo ${t//?/$c}; }
+function box() { local t c; t="$1xxxx";c=${2:-#}; echo ${t//?/$c}; echo "${c} ${1} ${c}"; echo ${t//?/$c}; }
 
 
 # Crypt/decrypt functions for one file
@@ -1045,6 +1047,7 @@ function memstats()
 # Align strings vertically with offset
 function vertical_align()
 {
+    local line
     tput cub ${1:-0}
     while read -r line; do
         tput cuf ${1:-0}
