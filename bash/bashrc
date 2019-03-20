@@ -996,8 +996,8 @@ function dfstats()
 # Get local IP adress
 function local_ip()
 {
-    local loc_ip=$(hostname -I)
-    echo ${loc_ip:-"Not connected"}
+    local ip=$(hostname -I)
+    echo ${ip:-"Not connected"}
 }
 
 function cputemp()
@@ -1015,14 +1015,14 @@ function cputemp()
 # Convert bytes to human-readable format
 function bytes2hr()
 {
-    local SIZE=$1
-    local UNITS=(B K M G T P) e=0
-    while [ ${SIZE%.*} -gt 1024 ]
+    local size=$1
+    local units=(B K M G T P) e=0
+    while [ ${size%.*} -gt 1024 ]
     do
-        SIZE=$(echo "${SIZE}/1024" | bc -l)
+        size=$(echo "${size}/1024" | bc -l)
         let e++
     done
-    printf "%.0f%s" ${SIZE} ${UNITS[e]}
+    printf "%.0f%s" ${size} ${units[e]}
 }
 
 function memstats()
@@ -1098,10 +1098,11 @@ function repeat()
 
 function ask()
 {
-    echo -n "$@" '[y/n] ' ; read ans
-    case "${ans}" in
+    local answer
+    echo -n "$@" '[y/n] ' ; read answer
+    case "${answer}" in
         y*|Y*) return 0 ;;
-        *) return 1 ;;
+        *)     return 1 ;;
     esac
 }
 
