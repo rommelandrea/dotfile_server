@@ -796,7 +796,7 @@ function sanitize()
             txz)    ext="tar.xz"    ;;
         esac
         if  [ "${file##*.}" != "${ext}" ]; then
-            command mv -v "${file}" ${name}.${ext}
+            command mv -iv "${file}" ${name}.${ext}
         fi
     done
     IFS="${OIFS}"
