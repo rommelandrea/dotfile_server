@@ -568,7 +568,7 @@ fi   # End of 'programming' specific sections
 # Prevents accidental file clobbering:
 alias mv='mv -i'
 alias cp='cp -i'
-alias rm='rm -i'
+alias rm='rm -I'
 
 alias mkdir='mkdir -p'
 alias ..='cd ..'
